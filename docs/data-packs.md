@@ -13,11 +13,13 @@ packs work mechanically.
 | `english` | 36.8 MB | 51.0 MB | an English index and its model |
 | `punjabi-extra` | 12.3 MB | 17.5 MB | a third voter, sharing the core model |
 | `extra-indexes` | 26.4 MB | 34.9 MB | the last two indexes |
+| `writings-<key>` | 0.5–7 MB each | 0.6–9 MB | a body of prose about Gurbani, searchable by meaning; needs `english` (see NOTICE.md, *The writings*) |
 
 ```bash
 npm run fetch-data                     # the four default packs -- 125MB
 npm run fetch-data -- --core-only      # 46MB
-npm run fetch-data -- --all            # everything -- 152MB
+npm run fetch-data -- --all            # everything, the writings included
+npm run fetch-data -- --packs writings-puran   # one author; `english` comes along, because it is required
 npm run fetch-data -- --no-model       # skip the ONNX models entirely
 npm run fetch-data -- --verify         # re-hash what is on disk, download nothing
 npm run fetch-data -- --dry-run        # print the plan
@@ -116,8 +118,12 @@ not hide the rest.
 ## What is not published, and why
 
 `corpus.sqlite` (the build-time corpus, which holds text the API never serves),
-the source documents, the Mahan Kosh database, the writings corpus, the reader
-packs used by a mobile bundle, the untrimmed parent model, and every
-lab/experimental index. The pack builder refuses to stage any of them, and
-refuses outright if the translations database has grown a `kind='note'` row —
-Sahib Singh's side notes never leave the server.
+the source documents and PDFs the writings were read from, the Mahan Kosh
+database, the reader packs used by a mobile bundle, the untrimmed parent model,
+and every lab/experimental index. The pack builder refuses to stage any of them,
+and refuses outright if the translations database has grown a `kind='note'` row
+— Sahib Singh's side notes never leave the server.
+
+A pack may declare `requires`: the fetcher adds those packs whether or not they
+were asked for. The writings packs require `english`, whose model embeds their
+queries.

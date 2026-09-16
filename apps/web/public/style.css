@@ -1,0 +1,11 @@
+/* A file rather than an inline block: the server's Content-Security-Policy
+   allows no inline style or script, and this page is the one thing it serves. */
+:root { color-scheme: light dark; }
+body { font: 16px/1.6 system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+pre { background: rgba(128,128,128,.12); padding: .8rem 1rem; border-radius: 6px; overflow-x: auto; }
+a { color: inherit; }
+table { border-collapse: collapse; width: 100%; }
+td { padding: .35rem .6rem .35rem 0; vertical-align: top; border-bottom: 1px solid rgba(128,128,128,.25); }
+td:first-child { white-space: nowrap; font-family: ui-monospace, monospace; font-size: .88em; }
+.muted { opacity: .7; }

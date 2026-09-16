@@ -32,6 +32,40 @@ const MODELS_DIR = process.env.MODELS_DIR || path.join(ROOT, 'vendor', 'models')
 // who turns on translations beside the Gurmukhi (?tr=en,pa). Absent -> ask is
 // off and the translation toggle is not offered.
 const TRANSLATIONS_PATH = process.env.TRANSLATIONS_PATH || path.join(ARTIFACTS, 'translations.sqlite');
+// The prose corpora. artifacts/corpora/ is one level deeper than an index
+// directory so that registry.discoverIndexDirs never finds it: their ids are
+// passage rows, not lines of the Granth, and an index that addressed the wrong
+// thing would render the wrong verse rather than fail.
+//
+// Each is a body of prose ABOUT Gurbani with its own id space, its own model
+// and its own database. A reader searches them by meaning (/api/writings/search)
+// and, where a language model is configured, puts questions to them.
+// They are listed rather than hardcoded so that another costs a row here and
+// nothing else; one that is not on disk is simply absent.
+const CORPORA_DIR = path.join(ARTIFACTS, 'corpora');
+const WRITINGS_PATH = process.env.WRITINGS_PATH || path.join(ARTIFACTS, 'writings.sqlite');
+const TREATISES_PATH = process.env.TREATISES_PATH || path.join(ARTIFACTS, 'treatises.sqlite');
+const AKJ_PATH = process.env.AKJ_PATH || path.join(ARTIFACTS, 'akj.sqlite');
+const PURAN_PATH = process.env.PURAN_PATH || path.join(ARTIFACTS, 'puran.sqlite');
+const VIRSINGH_PATH = process.env.VIRSINGH_PATH || path.join(ARTIFACTS, 'virsingh.sqlite');
+const RAGHBIR_PATH = process.env.RAGHBIR_PATH || path.join(ARTIFACTS, 'raghbir.sqlite');
+// The order is the order a reader is offered them, so it is editorial rather
+// than alphabetical: Bau Ji first, because his is the corpus this began with,
+// then Sahib Singh's commentary, then the four bodies of English prose.
+const CORPORA = [
+  { key: 'writings', dir: 'writings-en', db: WRITINGS_PATH },
+  { key: 'akj', dir: 'akj-en', db: AKJ_PATH },
+  { key: 'puran', dir: 'puran-en', db: PURAN_PATH },
+  { key: 'virsingh', dir: 'virsingh-en', db: VIRSINGH_PATH },
+  { key: 'raghbir', dir: 'raghbir-en', db: RAGHBIR_PATH },
+];
+const DEFAULT_CORPUS = 'writings';
+// A search returns whole passages, at most this many. Both floors are off by
+// default and are kept only as knobs: see /api/writings/search for the three
+// that were measured and why none of them can tell relevant from irrelevant.
+const WRITINGS_SEARCH_MAX = Math.max(1, Math.min(50, Number(process.env.WRITINGS_SEARCH_MAX) || 10));
+const WRITINGS_MIN_SCORE = Number(process.env.WRITINGS_MIN_SCORE) || 0;
+const WRITINGS_MIN_RATIO = Math.max(0, Math.min(1, Number(process.env.WRITINGS_MIN_RATIO) || 0));
 const PORT = Number(process.env.PORT || 5173);
 const PUBLIC_DIR = path.resolve(__dirname, 'public');
 // When set, every route except /api/health requires HTTP Basic auth with this
@@ -80,6 +114,9 @@ const db = core.openNodeAdapter(DB_PATH);
 const indexes = {};
 const known = new Set();
 let tdb = null;          // translations.sqlite, when it is on disk
+// key -> { store, ask }, one per corpus in CORPORA that is on disk; `ask` is
+// null where no language model is configured, and the search still works
+const corpora = new Map();
 
 // Who is asking, and how much they have left. The limiter above stays the
 // burst guard -- in memory, per minute -- while the durable daily counters
@@ -136,9 +173,14 @@ async function tryLoadEncoder(name, entry) {
       console.warn(`index "${name}": model ${path.relative(ROOT, modelDir)} missing, free-text search off`);
       return null;
     }
-    const key = JSON.stringify([modelDir, opts.tokenizer, opts.pooling, opts.queryPrefix, opts.maxLen]);
+    // max_len is a truncation bound inside the encoder, not a property of the
+    // model, so it is deliberately NOT in the key: the Gurbani indexes say 160
+    // and the prose corpora 256, and keying on it loaded each model twice. The
+    // shared session takes the larger bound; a query is capped at 300 characters
+    // long before either matters.
+    const key = JSON.stringify([modelDir, opts.tokenizer, opts.pooling, opts.queryPrefix]);
     if (!encoders.has(key)) {
-      encoders.set(key, await createNodeEncoder(modelDir, opts));
+      encoders.set(key, await createNodeEncoder(modelDir, { ...opts, maxLen: Math.max(opts.maxLen || 0, 256) }));
       console.log(`index "${name}": query encoder loaded (${opts.tokenizer}, ${opts.pooling} pooling)`);
     } else {
       console.log(`index "${name}": query encoder shared`);
@@ -291,12 +333,26 @@ const shabadsByIds = ids => {
   return ids.map(id => byId.get(id)).filter(Boolean);
 };
 
+// A PARAMETER THAT IS NOT THERE IS NOT A ZERO. `URLSearchParams.get` answers
+// null for an absent key, and `Number(null)` and `Number('')` are both 0, which
+// `Number.isInteger` happily accepts. So these two read a missing parameter as
+// the number zero and never reached the branch written for it: the clamp below
+// returned `min`, and every route with an optional bound answered with ONE
+// result instead of its default -- /api/text, /api/similar, /api/writings/search
+// and /api/fl's `limit`, all of them, for any caller that left the parameter
+// out. The browser app always sends one, so it showed up only through the API.
+// Likewise a missing `id` became id 0, and the "invalid or missing id" branch
+// below was dead code behind a 404 about shabad zero.
+const absent = val => val === null || val === undefined || val === '';
+
 function parseBoundedInt(val, min, max, fallback) {
+  if (absent(val)) return fallback;
   const n = Number(val);
   return Number.isInteger(n) ? Math.max(min, Math.min(max, n)) : fallback;
 }
 
 function parseNonNegativeInt(val) {
+  if (absent(val)) return null;
   const n = Number(val);
   return Number.isInteger(n) && n >= 0 ? n : null;
 }
@@ -370,6 +426,46 @@ const similar = (run, resolve) => url => {
            results: rows.map(r => ({ ...r, score: byId.get(r.line_id ?? r.shabad_id).score, votes: byId.get(r.line_id ?? r.shabad_id).hits.length })) };
 };
 
+/**
+ * The prose corpus a request asked for.
+ *
+ * An unknown name is a 400 and a known one that is not built is a 503, the
+ * same distinction /api/text draws between a name nobody has and a name whose
+ * index is missing -- a reader who mistypes should be told so, and one whose
+ * server simply lacks the file should not be told they mistyped.
+ */
+function corpusByKey(key) {
+  if (!CORPORA.some(c => c.key === key)) return { error: `unknown corpus "${key}"`, code: 400 };
+  const held = corpora.get(key);
+  if (!held) return { error: `the "${key}" corpus is not on this server`, code: 503 };
+  return { key, store: held.store, ask: held.ask };
+}
+function pickCorpus(url) {
+  return corpusByKey(url.searchParams.get('corpus') || DEFAULT_CORPUS);
+}
+
+/**
+ * `corpus=all`: every corpus on this server, in the order CORPORA declares;
+ * `corpus=a,b`: those; `corpus=a` or nothing: one. Returns { all, keys,
+ * entries } or an error body.
+ */
+function pickCorpora(url) {
+  const raw = url.searchParams.get('corpus') || DEFAULT_CORPUS;
+  if (raw === 'all') {
+    const keys = CORPORA.filter(c => corpora.has(c.key)).map(c => c.key);
+    if (!keys.length) return { error: 'no corpus is on this server', code: 503 };
+    return { all: true, keys, entries: keys.map(k => corpusByKey(k)) };
+  }
+  const keys = [...new Set(raw.split(',').map(x => x.trim()).filter(Boolean))];
+  const entries = [];
+  for (const key of keys) {
+    const one = corpusByKey(key);
+    if (one.error) return one;
+    entries.push(one);
+  }
+  return { all: keys.length > 1, keys, entries };
+}
+
 
 const routes = {
   '/api/health': () => {
@@ -389,7 +485,20 @@ const routes = {
       api_version: API_VERSION,
       cors: cors.summary(),
       logging: logger.summary(),
-      rate_limit: limits.summary(),
+      // the numbers, so a deploy can be checked; not which header names the
+      // client, which is the one detail that would help someone evade them
+      rate_limit: (({ trust_proxy, client_ip_header, ...rest }) => rest)(limits.summary()),
+      // `writings` keeps its shape for the client that already reads it; the
+      // rest of the corpora are listed beside it, the default one included.
+      writings: corpora.has(DEFAULT_CORPUS)
+        ? { ...corpora.get(DEFAULT_CORPUS).store.summary(), ask: Boolean(corpora.get(DEFAULT_CORPUS).ask) }
+        : { enabled: false },
+      // `shipped: false` separates the two ways a corpus can be missing. Without
+      // it a deliberately parked corpus reads exactly like a failed build, and
+      // the owner goes looking for a file that is sitting right there.
+      corpora: CORPORA.map(c => (corpora.has(c.key)
+        ? { key: c.key, ...corpora.get(c.key).store.summary(), ask: Boolean(corpora.get(c.key).ask) }
+        : { key: c.key, enabled: false, ...(c.ship === false ? { shipped: false } : {}) })),
       // legacy summary fields, for the default index
       semantic: Boolean(indexes[DEFAULT_INDEX]),
       freeText: Boolean(indexes[DEFAULT_INDEX] && indexes[DEFAULT_INDEX].encoder),
@@ -398,6 +507,7 @@ const routes = {
 
   '/api/fl': url => {
     const q = url.searchParams.get('q') || '';
+    if (q.length > MAX_QUERY_CHARS) return { error: `query longer than ${MAX_QUERY_CHARS} characters`, code: 400 };
     const limit = parseBoundedInt(url.searchParams.get('limit'), 1, 100, 25);
     const mode = url.searchParams.get('mode') === 'start' ? 'start' : 'anywhere';
     const fn = mode === 'start' ? core.firstLetterStart : core.firstLetterAnywhere;
@@ -488,6 +598,139 @@ const routes = {
     romanKeymap: core.keyboard.ROMAN_KEYMAP,
   }),
 
+  // The prose corpora: each has an id space of its own, and its own routes, so
+  // that a passage row can never reach a route that resolves ids against
+  // gurbani.sqlite. `?corpus=` picks one; omitting it means the writings.
+  '/api/writings': url => {
+    const picked = pickCorpus(url);
+    if (picked.error) return picked;
+    const { store } = picked;
+    return {
+      ...store.summary(),
+      corpus_key: picked.key,
+      works: store.works.map(w => ({
+        work: w.work_id, title: w.title, title_en: w.title_en || null, author: w.author,
+        parts: JSON.parse(w.parts),
+        units: w.units, original: Boolean(w.original), quote_policy: w.quote_policy,
+      })),
+    };
+  },
+
+  /**
+   * Search the writings by meaning: the passages nearest the query, whole,
+   * with the shabads they cite. At most WRITINGS_SEARCH_MAX, best first.
+   *
+   * THERE IS NO RELEVANCE FILTER HERE, and that is a measured decision rather
+   * than an omission. Three were tried against all five corpora on 2026-09-16,
+   * eight on-topic queries against six off-topic ones:
+   *
+   *   absolute cosine  "python list comprehension syntax" scores 0.50 against
+   *                    Puran Singh; "ego and humility", which he wrote about at
+   *                    length, tops out at 0.35. No threshold orders these two
+   *                    the right way round.
+   *   z-score of the   how far the best passage stands out from the whole
+   *   top hit          corpus, free because the scan computes every cosine
+   *                    anyway. On-topic 4.48..6.14, off-topic 4.03..5.79.
+   *                    Overlapping, so no cut.
+   *   relative floor   keep what scores within a ratio of the best. This one is
+   *                    worse than nothing: at 0.75 it kept 77% of on-topic rows
+   *                    and 87% of off-topic ones, and it was backwards at every
+   *                    ratio tried. An off-topic query matches nothing in
+   *                    particular, so its scores are flat and the ratio spares
+   *                    them all; an on-topic query has a peak and a tail, and
+   *                    the ratio cuts the tail. It removed good passages faster
+   *                    than bad ones, which is why it now defaults to off.
+   *
+   * bge-small's cosines say which passage is nearest. They do not say whether
+   * anything is near, and no arrangement of them does. Rejecting an off-topic
+   * question needs a reranker that reads the question and the passage together
+   * -- which is exactly what Ask does, and why Ask reranks and this does not.
+   * So the ranking is returned honestly with its scores, capped at
+   * WRITINGS_SEARCH_MAX, and judging it is the reader's. WRITINGS_MIN_RATIO and
+   * WRITINGS_MIN_SCORE remain as env knobs, both off, for anyone who measures
+   * something better on a corpus of their own.
+   */
+  '/api/writings/search': async url => {
+    const picked = pickCorpora(url);
+    if (picked.error) return picked;
+    const q = (url.searchParams.get('q') || '').trim();
+    if (q.length > MAX_QUERY_CHARS) return { error: `query longer than ${MAX_QUERY_CHARS} characters`, code: 400 };
+    const k = parseBoundedInt(url.searchParams.get('k'), 1, WRITINGS_SEARCH_MAX, Math.min(10, WRITINGS_SEARCH_MAX));
+    const work = url.searchParams.get('work') || null;
+    const withSources = url.searchParams.get('cites') === '1';
+    const label = picked.all ? 'all' : picked.keys[0];
+    if (work && picked.all) return { error: 'a work narrows one corpus; name it with corpus=', code: 400 };
+    if (work && !picked.entries[0].store.hasWork(work)) return { error: `unknown work "${work}"`, code: 400 };
+    if (!q) return { corpus: label, corpora: picked.keys, results: [] };
+    const able = picked.entries.filter(e => e.store.encoder && e.store.canRead(q));
+    if (!able.length) {
+      if (picked.all) return { error: 'no corpus on this server can read this query', code: 503 };
+      const one = picked.entries[0];
+      return one.store.encoder
+        ? { error: `the "${one.key}" corpus cannot read this query's script`, code: 400 }
+        : { error: `no query encoder for "${one.key}" on this server`, code: 503 };
+    }
+    const t0 = Date.now();
+    const floor = hits => {
+      if (!hits.length) return hits;
+      const top = hits[0].score;
+      return hits.filter(h => h.score >= WRITINGS_MIN_SCORE && h.score >= top * WRITINGS_MIN_RATIO);
+    };
+    const passage = (key, r, extra) => ({
+      corpus: key, unit_row: r.unit_row, unit_id: r.unit_id, work: r.work_id,
+      title: r.title, title_en: r.title_en || null, author: r.author, original: r.original,
+      part: r.part, page: r.page, marker: r.marker, ...extra, text: r.text,
+      cites: r.cites.map(c => ({ shabad_id: c.shabad_id, line_id: c.line_id, ang: c.ang })),
+    });
+    const finish = results => ({
+      corpus: label, corpora: able.map(e => e.key), query: q, work: work || null,
+      // What the score IS, not what the request asked for. `corpus=all` on a
+      // deployment carrying one corpus fuses nothing, so calling it `rrf` and
+      // handing back 1/(60+rank) threw away the cosines it actually had and
+      // told the caller they were something else. A public deployment that
+      // fetched a single writings pack is exactly that deployment.
+      score_kind: able.length > 1 ? 'rrf' : 'cosine', min_ratio: WRITINGS_MIN_RATIO, min_score: WRITINGS_MIN_SCORE,
+      ms: Date.now() - t0, results,
+      // the shabads those passages cite, whole, for a client that draws them
+      ...(withSources ? { sources: shabadsByIds([...new Set(results.flatMap(r => r.cites.map(c => c.shabad_id)))]) } : {}),
+    });
+
+    // One corpus answers the same way whether it was asked for by name or as
+    // part of `all`: there is nothing to fuse with, and its cosines are
+    // comparable to each other, which is the whole point of reporting them.
+    if (!picked.all || able.length === 1) {
+      const { key, store } = able[0];
+      const hits = floor(store.nearest(await store.encode(q), k, { work }));
+      const score = new Map(hits.map(h => [h.unit_row, h.score]));
+      return finish(store.load(hits.map(h => h.unit_row)).map(r => passage(key, r, { score: score.get(r.unit_row) })));
+    }
+    // Several corpora, each in its own PCA space, so their cosines are not
+    // comparable: each list is floored on its own and the lists are fused by
+    // rank, as /api/text?index=all does. Keys are integers because fuseBy
+    // breaks ties numerically: corpus position above the row.
+    const lists = [];
+    for (let i = 0; i < able.length; i += 1) {
+      const { key, store } = able[i];
+      const hits = floor(store.nearest(await store.encode(q), k * 2));
+      lists.push({ index: key, via: 'search', weight: 1,
+                   items: hits.map(h => ({ id: i * 2 ** 20 + h.unit_row, score: h.score })) });
+    }
+    const fused = core.fuseBy(lists, k, item => item.id);
+    const byCorpus = new Map();
+    for (const f of fused) {
+      const i = Math.floor(f.key / 2 ** 20), unit_row = f.key % 2 ** 20;
+      if (!byCorpus.has(i)) byCorpus.set(i, []);
+      byCorpus.get(i).push(unit_row);
+    }
+    const loaded = new Map();
+    for (const [i, rows] of byCorpus) {
+      for (const r of able[i].store.load(rows)) loaded.set(i * 2 ** 20 + r.unit_row, passage(able[i].key, r, {}));
+    }
+    // no `votes` here: a passage belongs to exactly one corpus, so every
+    // fused row would say "1 source" and mean nothing by it
+    return finish(fused.map(f => ({ ...loaded.get(f.key), score: f.score })).filter(r => r.unit_row !== undefined));
+  },
+
 
   // Free-text search: English against the "en" index, Gurmukhi against "pa".
   // The query is embedded on this machine with the index's own model. Results
@@ -496,6 +739,7 @@ const routes = {
     const picked = pickIndexes(url, 'text');
     if (picked.error) return picked;
     const q = (url.searchParams.get('q') || '').trim();
+    if (q.length > MAX_QUERY_CHARS) return { error: `query longer than ${MAX_QUERY_CHARS} characters`, code: 400 };
     const level = url.searchParams.get('level') === 'shabads' ? 'shabads' : 'lines';
     const k = parseBoundedInt(url.searchParams.get('k'), 1, 50, 15);
     if (picked.all) {
@@ -538,17 +782,37 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
 };
 
+// Longer than any real search, shorter than anything a tokenizer should be
+// handed whole: the encoder truncates TOKENS, after tokenizing the lot.
+const MAX_QUERY_CHARS = 200;
+
+// The page's script and style are files, not inline blocks, so the policy can
+// refuse inline script outright -- which is the only thing a CSP is for here.
 const SECURITY_HEADERS = {
   'X-API-Version': API_VERSION,
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;",
+  // Fly redirects http to https; this is what stops the first request from
+  // going out in the clear next time. Harmless on localhost: browsers ignore it.
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self';",
 };
 
-const server = http.createServer(async (req, res) => {
+/**
+ * Every request. Async, and wrapped below, so that a throw anywhere in the
+ * dispatch -- a file removed after start, a manifest entry without a hash --
+ * is a 500 for that request and not an unhandled rejection that ends the
+ * process for everyone.
+ */
+async function handleRequest(req, res) {
   // Access logging, when it is on. Everything here is inside the `if` so a
   // deployment that does not want logs pays nothing for them -- no clock read,
   // no wrapped method, no listener.
@@ -575,6 +839,7 @@ const server = http.createServer(async (req, res) => {
   const H = { ...SECURITY_HEADERS, ...cors.headers(req) };
 
   // Method restriction: everything is GET, except a question may be POSTed
+  // and a reader token is only ever POSTed
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(405, { ...H, 'allow': 'GET, HEAD', 'content-type': 'text/plain; charset=utf-8' });
     res.end('method not allowed');
@@ -592,9 +857,10 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-
   // Charged before the credential check, so a flood of unauthenticated requests
-  // is refused as cheaply as possible. /api/health is never counted.
+  // is refused as cheaply as possible. /api/health is never counted. The
+  // bundle is counted too: it is the largest thing this server sends, and a
+  // downloader needs a few dozen requests, not a few hundred a minute.
   const rate = limits.check(url.pathname, req);
   if (rate && rate.code === 429) {
     const { headers: rh, ...body } = rate;
@@ -604,15 +870,21 @@ const server = http.createServer(async (req, res) => {
   }
   if (rate && rate.headers) Object.assign(H, rate.headers);
 
-  // /api/health stays open so host health checks do not require credentials.
-  if (url.pathname !== '/api/health') {
+
+  // /api/health stays open so host health checks do not require credentials,
+  // and so does /api/token, which is how a reader gets a credential at all.
+  // In readers mode only the routes that spend money are gated -- search and
+  // the page itself are open, cheap, and under the limiter above.
+  const gated = url.pathname !== '/api/health' && url.pathname !== '/api/token'
+    && (!identify.readers || url.pathname.startsWith('/api/ask') || url.pathname === '/api/me');
+  if (gated) {
     const ident = await identify(req).catch(() => null);
     if (!ident) {
       res.writeHead(401, {
         ...H,
         // Basic makes a browser show its password box; Bearer must not, or the
         // owner gets a dialog that cannot possibly satisfy it.
-        'www-authenticate': identify.challenge(),
+        'www-authenticate': identify.challenge(req),
         'content-type': 'text/plain; charset=utf-8',
       });
       res.end('credentials required');
@@ -623,20 +895,26 @@ const server = http.createServer(async (req, res) => {
 
   const handler = routes[url.pathname];
   if (handler) {
-    Promise.resolve()
-      .then(() => handler(url, req))
-      .catch(err => {
-        console.error(`Error handling ${url.pathname}:`, err);
-        return { error: IS_PROD ? 'Internal Server Error' : err.message, code: 500 };
-      })
-      .then(body => {
-        const code = body && body.code ? body.code : 200;
-        res.writeHead(code, {
-          ...H,
-          'content-type': 'application/json; charset=utf-8',
-        });
-        res.end(JSON.stringify(body));
-      });
+    let body;
+    try {
+      body = await handler(url, req);
+    } catch (err) {
+      console.error(`Error handling ${url.pathname}:`, err);
+      body = { error: IS_PROD ? 'Internal Server Error' : err.message, code: 500 };
+    }
+    // an oversize POST destroyed its own socket; there is nobody to answer
+    if (res.destroyed || res.writableEnded) return;
+    const { headers: extra, ...json } = body || {};
+    const code = json && json.code ? json.code : 200;
+    res.writeHead(code, {
+      ...H,
+      ...(extra || {}),
+      // a body that was never read to its end must not be followed by another
+      // request on the same connection
+      ...(code === 413 ? { connection: 'close' } : {}),
+      'content-type': 'application/json; charset=utf-8',
+    });
+    res.end(JSON.stringify(json));
     return;
   }
 
@@ -676,6 +954,26 @@ const server = http.createServer(async (req, res) => {
     });
     res.end(data);
   });
+}
+
+const server = http.createServer((req, res) => {
+  handleRequest(req, res).catch(err => {
+    console.error(`Error handling ${req.url}:`, err);
+    if (res.destroyed || res.writableEnded) return;
+    try {
+      if (!res.headersSent) res.writeHead(500, { ...SECURITY_HEADERS, 'content-type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: IS_PROD ? 'Internal Server Error' : String(err && err.message || err), code: 500 }));
+    } catch { res.destroy(); }
+  });
+});
+// A slow-loris client holding a socket open costs the one shared vCPU nothing,
+// but it does hold a connection slot; nothing here needs more than a few
+// seconds of headers or half a minute of body.
+server.headersTimeout = 10_000;
+server.requestTimeout = 30_000;
+server.on('clientError', (err, socket) => {
+  if (err.code === 'ECONNRESET' || !socket.writable) return;
+  socket.end('HTTP/1.1 400 Bad Request\r\nconnection: close\r\n\r\n');
 });
 
 function shutdown() {
@@ -721,9 +1019,35 @@ process.on('SIGINT', shutdown);
       tdb = null;
     }
   }
+  // the prose corpora: each with its own store and ids, sharing this process's
+  // ONNX encoders. A corpus that is not on disk is simply absent -- the rest of
+  // the app does not depend on any of them, and a missing one silences its
+  // tab rather than the server.
+  for (const c of CORPORA) {
+    if (c.ship === false) continue;      // built, deliberately not served
+    try {
+      const corpusDir = path.join(CORPORA_DIR, c.dir);
+      if (!fs.existsSync(path.join(corpusDir, 'manifest.json')) || !fs.existsSync(c.db)) continue;
+      const art = await core.loadCorpus(core.nodeReadFile(corpusDir));
+      // keyed on the corpus, but tryLoadEncoder caches per model, so a corpus
+      // whose model an index already loaded costs no second copy
+      const encoder = await tryLoadEncoder(c.dir, { art });
+      if (!encoder) continue;
+      const store = new core.CorpusStore({ art, db: core.openNodeAdapter(c.db), encoder });
+      corpora.set(c.key, { store, ask: null });
+      const sum = store.summary();
+      console.log(`${c.key}: ${sum.units} passages from ${sum.work_count} works, ${sum.citations} citations`);
+    } catch (err) {
+      console.warn(`${c.key} unavailable:`, err.message);
+      corpora.delete(c.key);
+    }
+  }
   const state = [...new Set([...known, ...Object.keys(indexes)])].sort()
     .map(n => `${n}:${indexes[n] ? (indexes[n].encoder ? 'on+text' : 'on') : 'off'}`).join(' ');
+  const mode = identify.readers ? 'readers' : (APP_PASSWORD ? 'password' : 'open');
+  // `typeof`, because the answer cache is a private feature the public export strips
+  const cacheNote = typeof askCache !== 'undefined' && askCache ? ', ask cache on' : '';
   server.listen(PORT, () => console.log(
-    `http://localhost:${PORT}  (indexes ${state}, password: ${APP_PASSWORD ? 'on' : 'off'})  `
+    `http://localhost:${PORT}  (indexes ${state}, access: ${mode}${cacheNote})  `
     + `db: ${path.relative(ROOT, DB_PATH)}`));
 })();

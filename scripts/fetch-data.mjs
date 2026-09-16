@@ -5,7 +5,8 @@
  *
  *   node scripts/fetch-data.mjs                  # the default packs (~125MB)
  *   node scripts/fetch-data.mjs --core-only      # the smallest useful set (~46MB)
- *   node scripts/fetch-data.mjs --all            # every index as well
+ *   node scripts/fetch-data.mjs --all            # every index, and every writings corpus
+ *   node scripts/fetch-data.mjs --packs writings-puran   # one author's writings (brings `english`)
  *   node scripts/fetch-data.mjs --verify         # re-hash what is on disk
  *
  * Node built-ins only -- no tar, no shell-out, no dependencies -- so Windows,
@@ -230,6 +231,13 @@ async function main(argv) {
     }
   }
   if (!names.includes('core')) names.unshift('core');     // required
+  // A pack that needs another -- a writings corpus needs the model the english
+  // pack carries -- brings it along, so `--packs writings-puran` alone works.
+  for (let i = 0; i < names.length; i++) {
+    for (const dep of manifest.packs[names[i]].requires || []) {
+      if (!names.includes(dep)) { names.push(dep); console.log(`${names[i]} requires ${dep}: added`); }
+    }
+  }
 
   let entries = names.flatMap(n => manifest.packs[n].files);
   if (o.noModel) entries = entries.filter(e => !e.path.startsWith('models/'));

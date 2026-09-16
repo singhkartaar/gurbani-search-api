@@ -276,6 +276,63 @@ test('POST is refused with 405', { skip: !HAS_DB }, async () => {
   assert.strictEqual((await fetch(BASE + '/api/text', { method: 'POST' })).status, 405);
 });
 
+// The writings: a search returns whole passages, a bounded number of them,
+// each with the shabads it cites. Skips where this build carries no corpus.
+test('writings search: bounded, floored, scored, and the id spaces never cross', { skip: !HAS_DB }, async () => {
+  const carried = (health.corpora || []).filter(c => c.enabled && c.search);
+  if (!carried.length) return;
+  const key = carried[0].key;
+  const r = (await get('/api/writings/search?q=' + encodeURIComponent('how to overcome fear') + '&corpus=' + key + '&k=5&cites=1'));
+  assert.strictEqual(r.status, 200, JSON.stringify(r.body).slice(0, 200));
+  const d = r.body;
+  assert.strictEqual(d.corpus, key);
+  assert.strictEqual(d.score_kind, 'cosine');
+  assert.ok(d.results.length >= 1 && d.results.length <= 5, `got ${d.results.length}`);
+  for (const p of d.results) {
+    assert.ok(p.text && p.title && p.author && p.work, 'a whole passage, placed');
+    assert.ok(typeof p.score === 'number');
+    assert.ok(Array.isArray(p.cites));
+  }
+  // best first, and no filtering by default: both floors are off, because
+  // none of the three measured could tell relevant from irrelevant (see the
+  // route's comment). The invariant is still asserted so that a deployment
+  // which does set a floor is checked against it rather than trusted.
+  const scores = d.results.map(p => p.score);
+  assert.deepStrictEqual(scores, [...scores].sort((a, b) => b - a));
+  assert.strictEqual(d.min_ratio, 0, 'the relative floor ships off');
+  assert.strictEqual(d.min_score, 0, 'the absolute floor ships off');
+  assert.ok(scores.every(s => s >= scores[0] * d.min_ratio && s >= d.min_score));
+  // cited shabads come back as shabads, resolved against the Granth, not as passage rows
+  for (const s of d.sources || []) assert.ok(s.shabad_id >= 0 && s.ang_start >= 1 && s.first_line !== undefined);
+
+  // the cap: k is clamped to the server's maximum, never above it
+  const many = (await get('/api/writings/search?q=fear&corpus=' + key + '&k=99')).body;
+  assert.ok(many.results.length <= 50);
+  // AND THE FLOOR: leaving k out means the default, not one. `Number(null)` is
+  // 0 and Number.isInteger accepts it, so an absent bound used to clamp to the
+  // minimum and every optional-k route answered with a single result to any
+  // caller that did not name one. The browser always names one; the API did not.
+  const bare = (await get('/api/writings/search?q=fear&corpus=' + key)).body;
+  assert.ok(bare.results.length > 1, `no k means the default, got ${bare.results.length}`);
+  const blank = (await get('/api/writings/search?q=fear&corpus=' + key + '&k=')).body;
+  assert.strictEqual(blank.results.length, bare.results.length, 'an empty k is an absent k');
+  // across every corpus, fused by rank
+  const all = (await get('/api/writings/search?q=' + encodeURIComponent('the fear of death') + '&corpus=all&k=6')).body;
+  assert.strictEqual(all.score_kind, carried.length > 1 ? 'rrf' : 'cosine');
+  assert.ok(all.results.length <= 6);
+  if (carried.length > 1) assert.ok(all.results.every(p => typeof p.score === 'number' && p.corpus && !('votes' in p)));
+  // the mistakes a caller can make
+  assert.strictEqual((await get('/api/writings/search?q=x&corpus=nope')).status, 400);
+  assert.strictEqual((await get('/api/writings/search?q=x&corpus=' + key + '&work=nope')).status, 400);
+  assert.strictEqual((await get('/api/writings/search?q=x&corpus=all&work=' + key)).status, 400);
+  assert.strictEqual((await get('/api/writings/search?q=' + encodeURIComponent('ਮੌਤ ਦਾ ਡਰ') + '&corpus=' + key)).status,
+    carried[0].query_scripts.includes('gurmukhi') ? 200 : 400, 'a script the model cannot read is refused, not [UNK]-ranked');
+  assert.deepStrictEqual((await get('/api/writings/search?corpus=' + key)).body.results, []);
+  // and the roster route still describes the works
+  const w = (await get('/api/writings?corpus=' + key)).body;
+  assert.ok(w.works.length >= 1 && w.units > 0);
+});
+
 
 test('a shabad carries what the Darpan says about it as a whole', { skip: !HAS_DB }, async () => {
   // ang 23, Siri Raag M1 -- the anthology's very first reference, filed under ਪਰਮਾਤਮਾ

@@ -50,6 +50,13 @@ const freeText = Object.values(health.body.indexes || {}).some(i => i.freeText);
 const langs = Object.entries(health.body.translations || {}).filter(([, v]) => v).map(([k]) => k);
 const tr = langs.length ? '&tr=' + langs.join(',') : '';
 
+// the writings are optional packs; probe the first one this deployment can search
+const corpora = (health.body.corpora || []).filter(c => c.enabled && c.search);
+if (corpora.length) {
+  check('/api/writings/search', await get(`/api/writings/search?q=fear+of+death&corpus=${corpora[0].key}&k=3`), b =>
+    `${b.results.length} passages from ${corpora[0].key} (${b.score_kind})`);
+}
+
 const fl = check('/api/fl', await get('/api/fl?q=gnm&limit=3' + tr), b =>
   `${b.total} matches, first at ang ${b.results?.[0]?.ang}`);
 

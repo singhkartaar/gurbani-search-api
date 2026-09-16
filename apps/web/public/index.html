@@ -2,17 +2,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gurbani search API</title>
-<style>
-  :root { color-scheme: light dark; }
-  body { font: 16px/1.6 system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; }
-  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
-  pre { background: rgba(128,128,128,.12); padding: .8rem 1rem; border-radius: 6px; overflow-x: auto; }
-  a { color: inherit; }
-  table { border-collapse: collapse; width: 100%; }
-  td { padding: .35rem .6rem .35rem 0; vertical-align: top; border-bottom: 1px solid rgba(128,128,128,.25); }
-  td:first-child { white-space: nowrap; font-family: ui-monospace, monospace; font-size: .88em; }
-  .muted { opacity: .7; }
-</style>
+<link rel="stylesheet" href="/style.css">
 
 <h1>Gurbani search API</h1>
 
@@ -32,6 +22,8 @@ available, and which translations are installed.</p>
   <tr><td>/api/similar/line</td><td>lines that say the same thing</td></tr>
   <tr><td>/api/similar/shabad</td><td>shabads that say the same thing</td></tr>
   <tr><td>/api/similar/rahao</td><td>shabads on the same theme, by refrain</td></tr>
+  <tr><td>/api/writings/search</td><td>passages from a body of writing about Gurbani, by meaning</td></tr>
+  <tr><td>/api/writings</td><td>the works a writings corpus holds</td></tr>
   <tr><td>/api/keyboard</td><td>the Gurmukhi keyboard layout</td></tr>
   <tr><td>/api/health</td><td>what this deployment can do</td></tr>
 </table>

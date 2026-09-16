@@ -2,10 +2,16 @@
 /**
  * Per-client request limits, off unless asked for.
  *
- *   RATE_LIMIT_PER_MINUTE       requests per client per minute, all routes
- *   RATE_LIMIT_TEXT_PER_MINUTE  a tighter ceiling for /api/text; defaults to
- *                               the general one
- *   TRUST_PROXY                 how many reverse proxies sit in front (see below)
+ *   RATE_LIMIT_PER_MINUTE           requests per client per minute, all routes
+ *   RATE_LIMIT_TEXT_PER_MINUTE      a tighter ceiling for /api/text; defaults to
+ *                                   the general one
+ *   RATE_LIMIT_WRITINGS_PER_MINUTE  the same for /api/writings/search; defaults
+ *                                   to the text ceiling, since it is the same
+ *                                   kind of work (an ONNX forward pass)
+ *   TRUST_PROXY                     how many reverse proxies sit in front (see below)
+ *   CLIENT_IP_HEADER                a header the nearest proxy OVERWRITES with the
+ *                                   client's address (Fly: fly-client-ip). When
+ *                                   set, it is used and X-Forwarded-For ignored.
  *
  * Unset or 0 means no limiting at all, which is what a service behind someone
  * else's gateway wants.
@@ -46,11 +52,21 @@ function normalizeIp(ip) {
  * address is used, which is correct when nothing is in front and safe when
  * something is (everyone behind that proxy shares a budget, which is
  * conservative rather than wrong).
+ *
+ * A proxy that OVERWRITES a header of its own (Fly's fly-client-ip) is simpler
+ * and safer than counting hops, because there is nothing a client can prepend
+ * to it. When `header` names one and the request carries it, that wins and
+ * X-Forwarded-For is not consulted at all.
  */
-function clientKey(req, trust = 0) {
+function clientKey(req, trust = 0, header = '') {
+  const headers = (req.headers) || {};
+  if (header) {
+    const v = String(headers[header] || '').split(',')[0].trim();
+    if (v) return normalizeIp(v);
+  }
   const socket = normalizeIp(req.socket && req.socket.remoteAddress);
   if (trust <= 0) return socket;
-  const xff = String((req.headers && req.headers['x-forwarded-for']) || '')
+  const xff = String(headers['x-forwarded-for'] || '')
     .split(',').map(s => s.trim()).filter(Boolean);
   const i = xff.length - trust;
   return i >= 0 && xff[i] ? normalizeIp(xff[i]) : socket;
@@ -64,10 +80,19 @@ const MAX_CLIENTS = 50_000;
 function createLimits(env = process.env, { now = () => Date.now(), setInterval: si = setInterval } = {}) {
   const perMinute = Math.max(0, Number(env.RATE_LIMIT_PER_MINUTE) || 0);
   const textPerMinute = Math.max(0, Number(env.RATE_LIMIT_TEXT_PER_MINUTE) || perMinute);
+  const writingsPerMinute = Math.max(0, Number(env.RATE_LIMIT_WRITINGS_PER_MINUTE) || textPerMinute);
   const trust = Math.max(0, Number(env.TRUST_PROXY) || 0);
+  const ipHeader = String(env.CLIENT_IP_HEADER || '').trim().toLowerCase();
   const enabled = perMinute > 0;
 
-  /** key -> { n, start } for the general budget and, separately, for text. */
+  // Routes that do model work get a tighter ceiling of their own. A route
+  // absent here costs only the general budget.
+  const ceilings = {
+    '/api/text': { limit: textPerMinute, what: 'free-text search' },
+    '/api/writings/search': { limit: writingsPerMinute, what: 'writings search' },
+  };
+
+  /** key -> { n, start } for the general budget and, separately, per tight route. */
   const buckets = new Map();
 
   const sweep = (t = now()) => {
@@ -119,20 +144,21 @@ function createLimits(env = process.env, { now = () => Date.now(), setInterval: 
   const check = (pathname, req) => {
     if (!enabled || pathname === '/api/health') return null;
     const t = now();
-    const key = clientKey(req, trust);
+    const key = clientKey(req, trust, ipHeader);
 
     const general = peek(key, perMinute, t);
     if (!general.ok) return refuse(general);
-    // A text query costs both budgets, so a tighter text ceiling is a ceiling
+    // A model query costs both budgets, so a tighter ceiling is a ceiling
     // rather than a second, independent allowance. Both are checked before
     // either is spent.
-    const textKey = key + '\0text';
-    const alsoText = pathname === '/api/text' && textPerMinute < perMinute;
-    if (alsoText) {
-      const text = peek(textKey, textPerMinute, t);
-      if (!text.ok) return refuse(text, 'free-text search');
+    const tight = ceilings[pathname];
+    const tightKey = key + '\0' + pathname;
+    const alsoTight = Boolean(tight) && tight.limit < perMinute;
+    if (alsoTight) {
+      const r = peek(tightKey, tight.limit, t);
+      if (!r.ok) return refuse(r, tight.what);
     }
-    if (alsoText) spend(textKey, t);
+    if (alsoTight) spend(tightKey, t);
     spend(key, t);
     return { ok: true, headers: rateHeaders(perMinute, general.remaining, general.reset) };
   };
@@ -152,10 +178,13 @@ function createLimits(env = process.env, { now = () => Date.now(), setInterval: 
   });
 
   return {
-    enabled, perMinute, textPerMinute, trustProxy: trust, check, clientKey: req => clientKey(req, trust),
+    enabled, perMinute, textPerMinute, writingsPerMinute, trustProxy: trust, clientIpHeader: ipHeader,
+    check, clientKey: req => clientKey(req, trust, ipHeader),
     size: () => buckets.size,
     summary: () => (enabled
-      ? { enabled: true, per_minute: perMinute, text_per_minute: textPerMinute, trust_proxy: trust }
+      ? { enabled: true, per_minute: perMinute, text_per_minute: textPerMinute,
+          ...(writingsPerMinute !== textPerMinute ? { writings_per_minute: writingsPerMinute } : {}),
+          trust_proxy: trust, ...(ipHeader ? { client_ip_header: ipHeader } : {}) }
       : { enabled: false }),
   };
 }

@@ -107,6 +107,82 @@ Needs a query model. Without one: **503**, and every other endpoint still works.
 
 ---
 
+## `GET /api/writings/search` — search a body of writing by meaning
+
+The writings are prose *about* Gurbani -- essays, commentaries, biographies --
+each a corpus with its own id space, its own model and its own data pack
+(`writings-<key>`). `/api/health`'s `corpora` lists the ones this deployment
+carries and whether each can be searched.
+
+| Parameter | Default | |
+|---|---|---|
+| `q` | — | the query, in a script the corpus's model reads (English for the English corpora). Empty returns no results |
+| `corpus` | `writings` | a key from `/api/health`, `all`, or a comma list |
+| `work` | none | a `work` id from `/api/writings`; one corpus only |
+| `k` | 10 | clamped to the server's `WRITINGS_SEARCH_MAX` |
+| `cites` | — | `1` also returns the cited shabads whole, as `sources` |
+
+```
+GET /api/writings/search?q=how+to+overcome+the+fear+of+death&corpus=puran&k=5&cites=1
+```
+
+```json
+{
+  "corpus": "puran", "corpora": ["puran"], "query": "how to overcome the fear of death",
+  "score_kind": "cosine", "min_ratio": 0, "min_score": 0, "ms": 31,
+  "results": [{
+    "corpus": "puran", "unit_row": 2114, "work": "spirit-of-the-sikh-2",
+    "title": "Spirit of the Sikh", "author": "Prof. Puran Singh", "original": true,
+    "part": "2", "page": 44, "score": 0.422,
+    "text": "Death has no terror for them. Fear is destroyed, for it is the light of God in which they live and breathe. ...",
+    "cites": []
+  }],
+  "sources": []
+}
+```
+
+**Whole passages, a bounded number of them.** A result is the passage itself,
+not a snippet, with its book, part, page and author, `original` (written in
+this language, as opposed to translated) and the shabads it cites. At most
+`WRITINGS_SEARCH_MAX` come back, best first.
+
+**There is no relevance filter, by measurement.** `min_ratio` and `min_score`
+are both 0 by default and are knobs, not policy. Across the five corpora, eight
+on-topic queries against six off-topic ones: an absolute cosine cannot separate
+them (an off-topic query scores 0.50 against one author while a subject he wrote
+about at length tops out at 0.35); a z-score of the best hit against the whole
+corpus overlaps (4.48..6.14 on-topic, 4.03..5.79 off-topic); and a relative
+floor is backwards -- at 0.75 it kept 77% of on-topic rows and 87% of off-topic
+ones, because an off-topic query has flat scores the ratio spares while an
+on-topic one has a tail the ratio cuts.
+
+`bge-small`'s cosines rank passages; they do not say whether anything is near.
+So `score` is comparable only within one response, never against a threshold of
+your own, and an off-topic question gets a full list of nearest-but-unrelated
+passages. Filtering that needs a model reading question and passage together.
+
+**`corpus=all` fuses by rank** (`score_kind: "rrf"`), as `/api/text?index=all`
+does, because each corpus has its own PCA space and their cosines are not
+comparable. `work` cannot be combined with it.
+
+**`unit_row` is a passage id, never a Gurbani id.** The corpora keep their own
+id space precisely so a passage number can never be mistaken for a line of the
+Granth; the only bridge is `cites`, which names shabads.
+
+A query in a script the model cannot read is a **400**. Needs the corpus's
+query model: without it, **503**, and every other endpoint still works.
+
+---
+
+## `GET /api/writings` — the roster of a corpus
+
+`corpus` (default `writings`). Returns the author, the model, the counts and
+the `works` -- each with `work`, `title`, `title_en`, `author`, `parts`,
+`units`, `original` and `quote_policy`. A `work` value is what the search route's
+`work` parameter takes.
+
+---
+
 ## `GET /api/fl` — search by first letters
 
 | Parameter | Default | |

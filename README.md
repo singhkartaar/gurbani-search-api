@@ -66,6 +66,7 @@ docker run -p 8080:8080 -v "$PWD/data:/data:ro" ghcr.io/gurmukhi-repo/gurbani-se
 | **Meaning search** | free text in English or Punjabi → the lines or shabads that mean it |
 | **Neighbours** | a line or shabad → others that say the same thing |
 | **Reading** | a shabad, its lines, its rahao stanza, and translations |
+| **Writings search** | free text → whole passages from a body of prose about Gurbani, with the shabads each cites (optional data packs) |
 
 ## Why it might interest you
 
@@ -94,6 +95,14 @@ Meaning search. `q` (English or Gurmukhi), `k` (1–50, default 15),
 Use `index=all` and read `votes`. The `score` is then a fusion rank
 (`score_kind: "rrf"`), not a similarity — compare results to each other, never
 to a threshold.
+
+### `GET /api/writings/search`
+Search a body of writing by meaning. `q`, `corpus` (a key from `/api/health`'s
+`corpora`, `all`, or a comma list), `work`, `k`, `cites=1`. Returns whole
+passages, at most `WRITINGS_SEARCH_MAX` (10), none under `min_ratio` of the
+best -- the floor is a ratio because a cosine cannot tell relevant from not
+with this model. The corpora are separate data packs (`writings-<key>`), off by
+default; `/api/writings` gives a corpus's roster of works.
 
 ### `GET /api/fl`
 First-letter search. `q` is the first letter of each word, ASCII (`gnm`) or
@@ -147,7 +156,11 @@ Environment variables; there is no config file.
 | `CORS_ORIGINS` | unset | unset → no CORS headers at all. `*` → any origin, no credentials. A comma list → only those origins, and they may send credentials |
 | `RATE_LIMIT_PER_MINUTE` | unset | requests per client per minute. Unset or `0` → no limiting |
 | `RATE_LIMIT_TEXT_PER_MINUTE` | = the above | a tighter ceiling for `/api/text`, the one endpoint that costs real CPU |
+| `RATE_LIMIT_WRITINGS_PER_MINUTE` | = the text ceiling | the same for `/api/writings/search` |
 | `TRUST_PROXY` | `0` | how many reverse proxies sit in front. `0` ignores `X-Forwarded-For` |
+| `CLIENT_IP_HEADER` | unset | a header your proxy overwrites with the client address (Fly: `fly-client-ip`); wins over `TRUST_PROXY` |
+| `WRITINGS_SEARCH_MAX` | `10` | most passages one writings search returns (ceiling 50) |
+| `WRITINGS_MIN_RATIO` | `0.75` | a passage under this fraction of the best score is dropped; `0` keeps all |
 | `LOG_REQUESTS` | unset | `json` or `text` — an access log. Unset → nothing |
 | `LOG_QUERIES` | unset | `1` includes the search terms in that log. Read the note below first |
 | `CLUSTER_WORKERS` | `1` | `N` or `auto` for multiple processes. **Memory multiplies by N** |

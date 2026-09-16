@@ -55,6 +55,33 @@ given because it is owed, not because it ships.
 
 ---
 
+## The writings
+
+The `writings-*` packs are prose *about* Gurbani -- essays, commentaries and
+biographies -- searchable by meaning through `/api/writings/search`, which
+returns whole passages, a bounded number per query. They are off by default;
+nothing here is fetched unless asked for.
+
+| pack | author | works | note |
+|---|---|---:|---|
+| `writings-writings` | Bau Ji | 39 | mostly translated from Punjabi; five essays are his own English |
+| `writings-akj` | Bhai Sahib Bhai Randhir Singh Ji (one book by Subedar Dharam Singh Sujjon) | 5 | translations |
+| `writings-puran` | Prof. Puran Singh | 6 | his own English |
+| `writings-virsingh` | Bhai Vir Singh | 6 | translations; two OCR-damaged books held back |
+| `writings-raghbir` | Bhai Raghbir Singh | 1 | translation |
+
+These are published on the project owner's statement (16 September 2026) that
+the writings are offered as a service to readers and that no licensing issue
+applies to their publication here. Each passage carries its author's name and
+its book and page, and `original` says whether the words are the author's own
+English or a translator's. The permission paragraph below applies to these packs
+exactly as it does to the scripture data: it was obtained for *this*
+publication and is not a licence you inherit. A rights holder who wants a work
+withdrawn should open an issue on this repository; the pack will be rebuilt
+without it.
+
+---
+
 ## Permission does not transfer
 
 Permission for *this* publication was obtained by the project's owner. **It is

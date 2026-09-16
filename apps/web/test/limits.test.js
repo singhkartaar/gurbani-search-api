@@ -194,6 +194,8 @@ test('health keeps answering after the budget is gone', { skip: !HAS_DB }, async
   const res = await fetch(`${BASE}/api/health`);
   assert.strictEqual(res.status, 200);
   const body = await res.json();
-  assert.deepStrictEqual(body.rate_limit,
-    { enabled: true, per_minute: 4, text_per_minute: 4, trust_proxy: 0 });
+  // the numbers are reported; which header names the client is not, because
+  // that is the one detail that would help someone route around them
+  assert.deepStrictEqual(body.rate_limit, { enabled: true, per_minute: 4, text_per_minute: 4 });
+  assert.ok(!('trust_proxy' in body.rate_limit) && !('client_ip_header' in body.rate_limit));
 });

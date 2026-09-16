@@ -37,6 +37,7 @@ tags:
   - name: search
   - name: read
   - name: neighbours
+  - name: writings
   - name: meta
 
 paths:
@@ -206,6 +207,70 @@ paths:
                   romanKeymap: { type: object, additionalProperties: { type: string } }
         '429': { $ref: '#/components/responses/RateLimited' }
 
+  /api/writings:
+    get:
+      tags: [writings]
+      operationId: writingsRoster
+      summary: What a writings corpus holds
+      description: |
+        The author, the works and how many passages each has. `/api/health`'s
+        `corpora` lists the corpora this deployment carries; a corpus is a data
+        pack (`writings-<key>`) and is simply absent where it was not fetched.
+      parameters:
+        - { $ref: '#/components/parameters/corpus' }
+      responses:
+        '200':
+          description: the roster
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Corpus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: a known corpus that this deployment does not carry
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /api/writings/search:
+    get:
+      tags: [writings, search]
+      operationId: searchWritings
+      summary: Search a body of writing by meaning
+      description: |
+        Whole passages nearest the query, best first, each with its book, page,
+        author and the shabads it cites. At most `WRITINGS_SEARCH_MAX` (10) come
+        back.
+
+        There is no relevance filter: `WRITINGS_MIN_RATIO` and
+        `WRITINGS_MIN_SCORE` are both 0 by default. Measured across the five
+        corpora, no function of these cosines separates relevant from not -- an
+        off-topic query can outscore an on-topic one, a z-score of the best hit
+        overlaps between the two, and a relative floor is backwards, cutting
+        on-topic tails while sparing flat off-topic lists. So `score` is
+        comparable only within one response, and an off-topic question returns
+        nearest-but-unrelated passages rather than an empty list.
+
+        `corpus=all` (or a comma list) searches several corpora and fuses them by
+        rank (`score_kind: rrf`), as `/api/text?index=all` does; `work` then
+        cannot be used. A query in a script the corpus's model cannot read is a
+        400. Needs the corpus's query model (the `english` pack).
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, maxLength: 200 }, description: the query; empty returns no results rather than an error }
+        - { $ref: '#/components/parameters/corpus' }
+        - { name: work, in: query, schema: { type: string }, description: a `work` id from `/api/writings`; narrows one corpus }
+        - { name: k, in: query, schema: { type: integer, minimum: 1, default: 10 }, description: clamped to the server's `WRITINGS_SEARCH_MAX` }
+        - { name: cites, in: query, schema: { type: string, enum: ['1'] }, description: also return the cited shabads whole, as `sources` }
+      responses:
+        '200':
+          description: passages, possibly none
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WritingsResults' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: no such corpus on this deployment, or no query model for it
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
 components:
   securitySchemes:
     basicAuth:
@@ -214,6 +279,11 @@ components:
       description: Required on every route except `/api/health` when `APP_PASSWORD` is set. Absent by default.
 
   parameters:
+    corpus:
+      name: corpus
+      in: query
+      description: a corpus key from `/api/health`'s `corpora`; `all` or a comma list on the search route
+      schema: { type: string, default: writings }
     id:
       name: id
       in: query
@@ -274,6 +344,71 @@ components:
                     - { $ref: '#/components/schemas/ShabadMeta' }
 
   schemas:
+    Corpus:
+      type: object
+      properties:
+        corpus_key: { type: string }
+        author: { type: string }
+        corpus: { type: string, description: the corpus directory name }
+        work_count: { type: integer }
+        units: { type: integer, description: passages }
+        citations: { type: integer, description: passages linked to a shabad }
+        model: { type: string }
+        query_scripts: { type: array, items: { type: string, enum: [latin, gurmukhi] } }
+        search: { type: boolean, description: whether this deployment can search it by text }
+        works:
+          type: array
+          items:
+            type: object
+            properties:
+              work: { type: string }
+              title: { type: string }
+              title_en: { type: [string, 'null'] }
+              author: { type: string }
+              parts: { type: array, items: { type: string } }
+              units: { type: integer }
+              original: { type: boolean, description: written in this language, as opposed to translated }
+              quote_policy: { type: string, enum: [verbatim, summarise] }
+    Passage:
+      type: object
+      properties:
+        corpus: { type: string }
+        unit_row: { type: integer, description: the passage's id within its corpus; never a Gurbani id }
+        unit_id: { type: string }
+        work: { type: string }
+        title: { type: string }
+        title_en: { type: [string, 'null'] }
+        author: { type: string }
+        original: { type: boolean }
+        part: { type: [string, integer, 'null'] }
+        page: { type: [integer, 'null'] }
+        marker: { type: [string, 'null'] }
+        score: { type: number, description: a cosine with one corpus, a fusion rank with several }
+        text: { type: string, description: the whole passage }
+        cites:
+          type: array
+          items:
+            type: object
+            properties:
+              shabad_id: { type: integer }
+              line_id: { type: integer }
+              ang: { type: integer }
+    WritingsResults:
+      type: object
+      properties:
+        corpus: { type: string, description: the key asked for, or `all` }
+        corpora: { type: array, items: { type: string }, description: the corpora that answered }
+        query: { type: string }
+        work: { type: [string, 'null'] }
+        score_kind: { type: string, enum: [cosine, rrf] }
+        min_ratio: { type: number }
+        min_score: { type: number }
+        ms: { type: integer }
+        results: { type: array, items: { $ref: '#/components/schemas/Passage' } }
+        sources:
+          type: array
+          description: the cited shabads, whole, when `cites=1`
+          items: { $ref: '#/components/schemas/ShabadMeta' }
     Error:
       type: object
       required: [error, code]

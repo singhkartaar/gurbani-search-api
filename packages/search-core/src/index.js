@@ -17,6 +17,7 @@ module.exports = {
   ...require('./vectors.js'),
   ...require('./stanza.js'),
   ...require('./registry.js'),
+  ...require('./corpus.js'),
   keyboard: require('./keyboard.js'),
   gurmukhi: require('./gurmukhi.js'),
 };

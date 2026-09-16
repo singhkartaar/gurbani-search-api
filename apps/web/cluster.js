@@ -52,6 +52,10 @@ function startCluster(env = process.env, log = console) {
     log.warn(`cluster: RATE_LIMIT_PER_MINUTE is per process, so a client gets up to `
       + `${n}x ${env.RATE_LIMIT_PER_MINUTE}/min across ${n} workers`);
   }
+  // The Ask burst guard is per process too; only the daily counters, which are
+  // on disk, are shared -- and those take one writer at a time.
+  log.warn(`cluster: ASK_PER_MINUTE (${env.ASK_PER_MINUTE || 10}) is per process as well; `
+    + `the daily counters on disk are shared and serialised across the ${n} workers`);
 
   for (let i = 0; i < n; i++) cluster.fork();
 

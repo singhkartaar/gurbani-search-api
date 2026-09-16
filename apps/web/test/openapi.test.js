@@ -51,7 +51,7 @@ test('the spec version matches the package version the server reports', () => {
 test('the spec does not promise features this build does not have', () => {
   // These were deliberately left out of the public API. A spec mentioning them
   // would send someone looking for an endpoint that is not there.
-  for (const gone of ['/api/ask', '/api/me', '/api/writings', '/bundles/']) {
+  for (const gone of ['/api/ask', '/api/me', '/api/token', '/bundles/']) {
     assert.ok(!SPEC.includes(gone), `openapi.yaml mentions ${gone}`);
   }
 });
