@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "release": "data-v1.1.0",
-  "version": "9fea707c242f",
-  "built": "2026-09-16T10:59:10.879Z",
-  "base_url": "https://github.com/gurmukhi-repo/gurbani-search-api/releases/download/data-v1.1.0",
+  "release": "data-v1.2.0",
+  "version": "677249b669aa",
+  "built": "2026-09-25T16:52:47.568Z",
+  "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
     "data": "NPOSL-3.0 and others",
@@ -1183,6 +1183,83 @@
           "bytes_plain": 1536,
           "sha256_plain": "39043d5d4e852bedbd961cf0a3785cf41ff32e00717684f627df27add7debdfc",
           "path": "artifacts/corpora/raghbir-en/pca.mean.f32"
+        }
+      ]
+    },
+    "writings-bariaran": {
+      "required": false,
+      "default": false,
+      "requires": [
+        "english"
+      ],
+      "label": "The writings of Sant Kartar Singh Ji Bariaranwale",
+      "why": "Sant Kartar Singh Ji Bariaranwale's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
+      "bytes": 937011,
+      "bytes_on_disk": 1595348,
+      "count": 7,
+      "files": [
+        {
+          "asset": "writings-bariaran.bariaran.sqlite.gz",
+          "bytes": 256399,
+          "sha256": "809d071c3a197bda443cd860443b900dcbda5b58e1b500d46c4323918f42d19b",
+          "encoding": "gzip",
+          "bytes_plain": 811008,
+          "sha256_plain": "dcea32783a911ddbb1b004e4b32160a27fe0fa863e1b638eaea3e80eb8aa540d",
+          "path": "artifacts/bariaran.sqlite"
+        },
+        {
+          "asset": "writings-bariaran.bariaran-en.manifest.json.gz",
+          "bytes": 538,
+          "sha256": "f6f9b9e31c081a566a310c16562ca4e61e7d678f4278fe5f1ee8f6637e88603a",
+          "encoding": "gzip",
+          "bytes_plain": 959,
+          "sha256_plain": "c38e9d9d8a0af7c51667c0e125ba25d0d90491244e6bb16301511ff2eadef3ca",
+          "path": "artifacts/corpora/bariaran-en/manifest.json"
+        },
+        {
+          "asset": "writings-bariaran.bariaran-en.units.i8.gz",
+          "bytes": 309929,
+          "sha256": "ccb4a00c5dea0dea4edf4db77c4a8aa99edc150b5bff6d0f1fd37585ca0e0d57",
+          "encoding": "gzip",
+          "bytes_plain": 381184,
+          "sha256_plain": "e77727ae9568deb61307055bea29b10fc2d359e10a41127ac41b0d7b15ed01da",
+          "path": "artifacts/corpora/bariaran-en/units.i8"
+        },
+        {
+          "asset": "writings-bariaran.bariaran-en.units.scale.f32.gz",
+          "bytes": 5130,
+          "sha256": "4bb03f10249f6d3cddca2b5b222e6298d3dfe2d4e4e2ec0092463326cc1b0a89",
+          "encoding": "gzip",
+          "bytes_plain": 5956,
+          "sha256_plain": "26e587fcf83a87d61761f5e292041d1beae2d13bce386ca22a3cdec129c2e9a3",
+          "path": "artifacts/corpora/bariaran-en/units.scale.f32"
+        },
+        {
+          "asset": "writings-bariaran.bariaran-en.units.mask.u8.gz",
+          "bytes": 32,
+          "sha256": "72e7b1fe7b73edfd10162f275b57a6da5e9656912ed2384d0175edf3ac42b4e6",
+          "encoding": "gzip",
+          "bytes_plain": 1489,
+          "sha256_plain": "9cdf8c420e49119ab2a55db0820a2ebd1fbcb22d843252efcbda328b6d2a3365",
+          "path": "artifacts/corpora/bariaran-en/units.mask.u8"
+        },
+        {
+          "asset": "writings-bariaran.bariaran-en.pca.components.f32.gz",
+          "bytes": 363492,
+          "sha256": "51204ce983d3a7430d5a58c0da413a92c341d8a063d5c8e4d312e92bcae14c2f",
+          "encoding": "gzip",
+          "bytes_plain": 393216,
+          "sha256_plain": "68e046c4941be072951515bb4d625d74fe7821a1a9a86c4dd9a87ad41612569d",
+          "path": "artifacts/corpora/bariaran-en/pca.components.f32"
+        },
+        {
+          "asset": "writings-bariaran.bariaran-en.pca.mean.f32.gz",
+          "bytes": 1491,
+          "sha256": "5e49d7645b12a6076647bd13800e5c3a19d132b4e9ff80614cd0ac168857e788",
+          "encoding": "gzip",
+          "bytes_plain": 1536,
+          "sha256_plain": "1df357c2ef3a9b2817ef797ced7dc524cc570f0c05534f11fcefc09ff22ed897",
+          "path": "artifacts/corpora/bariaran-en/pca.mean.f32"
         }
       ]
     }

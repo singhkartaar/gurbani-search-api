@@ -51,6 +51,23 @@ test('an Indic model turns both off, because a matra is a combining mark', () =>
   assert.strictEqual(normalize('Café', { stripAccents: false }), 'café'.normalize('NFC'));
 });
 
+test('a word that names something on Object.prototype is a word, not a function', () => {
+  // needs no model: "constructor", "toString" and the rest must be looked up in
+  // the vocabulary and nowhere else. They used to come back as Object's own
+  // members, and the first English query to say "constructor" threw.
+  const tiny = new WordPieceTokenizer({
+    normalizer: { lowercase: true, strip_accents: true },
+    model: { unk_token: '[UNK]', continuing_subword_prefix: '##',
+      vocab: { '[PAD]': 0, '[UNK]': 1, '[CLS]': 2, '[SEP]': 3, construct: 4, '##or': 5, the: 6 } },
+  });
+  const ids = tiny.encode('the constructor', 16).ids.map(Number);
+  assert.deepStrictEqual(ids, [2, 6, 4, 5, 3]);
+  for (const w of ['valueof', 'hasownproperty', 'isprototypeof', 'tostring']) {
+    const out = tiny.encode(w, 16).ids.map(Number);
+    assert.deepStrictEqual(out, [2, 1, 3], `${w} must be [UNK], got ${out}`);
+  }
+});
+
 test('pre-tokenization splits punctuation into standalone tokens', { skip: !HAS_MODEL }, () => {
   assert.deepStrictEqual(preTokenize("the lord's name!"), ['the', 'lord', "'", 's', 'name', '!']);
   assert.deepStrictEqual(preTokenize('a  b\tc'), ['a', 'b', 'c']);

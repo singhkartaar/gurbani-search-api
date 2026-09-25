@@ -86,14 +86,19 @@ class CorpusStore {
    * @param {object} o.db       an adapter over this corpus's sqlite: { all(sql, params) }
    * @param {object} [o.encoder] a query encoder built from this manifest; null
    *   means the store can be read and browsed but not searched by text
+   * @param {Function} [o.kernel] a scan for `VectorIndex.search`'s `opts.kernel`.
+   *   Null on a server, where the JavaScript loop is fast enough; the phone
+   *   passes its native one, because Hermes is not. See vectors.js.
    */
-  constructor({ art, db, encoder = null }) {
+  constructor({ art, db, encoder = null, kernel = null }) {
     this.manifest = art.manifest;
     this.meta = art.meta;
     this.units = art.units;
     this.pca = art.pca;
     this.db = db;
     this.encoder = encoder;
+    this.kernel = kernel;
+    this.workMasks = new Map();     // work_id -> Uint8Array, built once; see maskForWork
     this.works = db.all('SELECT * FROM works ORDER BY title', []);
     // which work each row belongs to, so a reader can search inside one book.
     // A few thousand short strings; the alternative is a query per search.
@@ -119,10 +124,44 @@ class CorpusStore {
    * @returns {Array<{unit_row: number, score: number}>}
    */
   nearest(vec, k = 10, { work = null, minScore = -Infinity } = {}) {
-    const filter = work ? row => this.workOf[row] === work : null;
-    return this.units.search(vec, k, filter ? { filter } : {})
+    return this.units.search(vec, k, this.scanOpts(work))
       .map(h => ({ unit_row: h.id, score: h.score }))
       .filter(h => h.score >= minScore);
+  }
+
+  /**
+   * The rows belonging to one work, as a mask the scan can use directly.
+   *
+   * Narrowing to a book used to be a `filter` predicate, which is correct and
+   * shuts a native kernel out — `VectorIndex.search` will not hand a scan it
+   * cannot call back into a JavaScript function. As a mask it is just bytes,
+   * and the kernel takes one, so searching inside a book is as fast as
+   * searching all of them. On the phone that is the difference between about
+   * 100ms and about 6ms.
+   *
+   * The index's own mask is folded in here, because `opts.mask` replaces
+   * rather than adds. Built once per work and kept: a corpus has at most a few
+   * dozen works and its longest is 11,119 rows, so the whole cache is a few
+   * hundred kilobytes even if a reader visits every book.
+   */
+  maskForWork(work) {
+    let m = this.workMasks.get(work);
+    if (m) return m;
+    const own = this.units.mask;
+    m = new Uint8Array(this.units.n);
+    for (let row = 0; row < m.length; row += 1) {
+      m[row] = (this.workOf[row] === work && (!own || own[row] === 1)) ? 1 : 0;
+    }
+    this.workMasks.set(work, m);
+    return m;
+  }
+
+  /** What to hand the scan: the kernel when there is one, the work's mask when narrowed. */
+  scanOpts(work) {
+    const opts = {};
+    if (this.kernel) opts.kernel = this.kernel;
+    if (work) opts.mask = this.maskForWork(work);
+    return opts;
   }
 
   /**
@@ -131,15 +170,16 @@ class CorpusStore {
    * fuseBy is not used here because there is one list per query form over one
    * id space; a plain reciprocal-rank sum over the forms is the whole of it.
    *
-   * `work` narrows the search to one book. The filter runs inside the scan
-   * rather than over its results, so asking within a short work still returns
-   * a full set of candidates instead of whatever survived a global top-40.
+   * `work` narrows the search to one book. The narrowing happens inside the
+   * scan rather than over its results, so asking within a short work still
+   * returns a full set of candidates instead of whatever survived a global
+   * top-40. See maskForWork for why it is a mask and not a predicate.
    */
   search(queryVecs, k = 20, depth = 40, work = null) {
     const scores = new Map();
-    const filter = work ? row => this.workOf[row] === work : null;
+    const opts = this.scanOpts(work);
     for (const vec of queryVecs) {
-      const hits = this.units.search(vec, depth, filter ? { filter } : {});
+      const hits = this.units.search(vec, depth, opts);
       hits.forEach((hit, rank) => {
         const row = hit.id ?? hit.row;
         scores.set(row, (scores.get(row) || 0) + 1 / (60 + rank + 1));

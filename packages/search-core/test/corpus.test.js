@@ -104,3 +104,51 @@ test('load returns rows in the order asked, with their citations attached', asyn
   assert.strictEqual(s.search, false, 'no encoder, no text search');
   await assert.rejects(() => store.encode('x'), /no query encoder/);
 });
+
+test('narrowing to a work is a mask, and it says exactly what the predicate said', () => {
+  const { manifest, files } = fakeCorpus();
+  const store = new CorpusStore({ art: corpusFromBytes(manifest, files), db: stubDb });
+  const vec = new Float32Array([0, 1, 0, 0]);          // nearest row 1, which is in w1
+
+  const all = store.nearest(vec, 3);
+  assert.deepEqual(all.map(h => h.unit_row), [1, 0, 2].filter(r => all.some(h => h.unit_row === r)));
+
+  // w2 holds only row 2
+  assert.deepEqual(store.nearest(vec, 3, { work: 'w2' }).map(h => h.unit_row), [2]);
+  // w1 holds rows 0 and 1
+  assert.deepEqual(store.nearest(vec, 3, { work: 'w1' }).map(h => h.unit_row).sort(), [0, 1]);
+
+  // the same thing the old filter predicate computed, row for row
+  const byPredicate = store.units.search(vec, 3, { filter: row => store.workOf[row] === 'w1' });
+  assert.deepEqual(store.nearest(vec, 3, { work: 'w1' }).map(h => h.unit_row), byPredicate.map(h => h.id));
+});
+
+test('a work mask is built once and folds in the corpus mask', () => {
+  const { manifest, files } = fakeCorpus();
+  files['units.mask.u8'] = new Uint8Array([1, 0, 1]);   // row 1 is out of the index
+  const store = new CorpusStore({ art: corpusFromBytes(manifest, files), db: stubDb });
+
+  assert.deepEqual([...store.maskForWork('w1')], [1, 0, 0],
+    'row 1 belongs to w1 and is masked out of the index, so it is out of the work too');
+  assert.equal(store.maskForWork('w1'), store.maskForWork('w1'), 'built once and kept');
+
+  const vec = new Float32Array([0, 1, 0, 0]);
+  assert.deepEqual(store.nearest(vec, 3, { work: 'w1' }).map(h => h.unit_row), [0]);
+});
+
+test('the store hands its kernel to every scan, narrowed or not', () => {
+  const { manifest, files } = fakeCorpus();
+  const seen = [];
+  const kernel = (args) => { seen.push(args.mask); return []; };
+  const store = new CorpusStore({ art: corpusFromBytes(manifest, files), db: stubDb, kernel });
+  const vec = new Float32Array([1, 0, 0, 0]);
+
+  store.nearest(vec, 3);
+  store.nearest(vec, 3, { work: 'w2' });
+  store.search([vec], 3, 3, 'w2');
+
+  assert.equal(seen.length, 3, 'nearest and search both use it');
+  assert.equal(seen[0], store.units.mask, 'unnarrowed: the corpus mask');
+  assert.equal(seen[1], store.maskForWork('w2'), 'narrowed: the work mask');
+  assert.equal(seen[2], store.maskForWork('w2'));
+});

@@ -32,6 +32,12 @@ function discoverIndexDirs(artifactsDir) {
       out.push({ name: fallbackName, dir, manifest: null, warning: `unreadable manifest: ${err.message}` });
       return;
     }
+    // A documents index (kind: "documents") addresses passages of prose, not
+    // lines of the Granth: loaded as a Gurbani index its row numbers would
+    // render the wrong verse rather than fail. Those belong under
+    // artifacts/corpora/, which is too deep to be found here -- but depth is a
+    // convention and the manifest is a fact, so the manifest is what is checked.
+    if (manifest.kind === 'documents') return;
     const name = manifest.index || fallbackName;
     const entry = { name, dir, manifest };
     if (fallbackName !== name && dir !== artifactsDir) entry.warning = `directory ${path.basename(dir)} carries index "${name}"`;

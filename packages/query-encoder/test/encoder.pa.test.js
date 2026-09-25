@@ -27,6 +27,29 @@ test('Metaspace pre-tokenization prefixes and splits on the meta symbol', () => 
   assert.deepStrictEqual(preTokenize('query: peace'), ['▁query:', '▁peace']);
 });
 
+test('odd whitespace is what the model\'s own normalizer makes of it', () => {
+  // Each of these was checked against the Python `tokenizers` package with
+  // multilingual-e5-small's tokenizer.json (2026-09-18). The corpus holds none
+  // of them, so the token-for-token parity test below never sees them; a reader
+  // typing with a ZWJ, or pasting two spaces, does.
+  assert.strictEqual(normalize('hello  world'), 'hello world');
+  assert.strictEqual(normalize('a\t\tb'), 'a b');
+  assert.strictEqual(normalize('a\x0cb'), 'a b');                  // form feed is a space, not a control
+  assert.strictEqual(normalize('ਸ੍‍ਰੀ'), 'ਸ੍ ਰੀ');              // ZWJ
+  assert.strictEqual(normalize('ਸ‌ਤਿ'), 'ਸ ਤਿ');               // ZWNJ
+  assert.strictEqual(normalize('a​b'), 'a b');                // ZWSP
+  assert.strictEqual(normalize('x﻿y'), 'x y');                // BOM
+  assert.strictEqual(normalize('a‎b'), 'a b');                // LRM
+  assert.strictEqual(normalize('a�b'), 'a b');                // replacement character
+  assert.strictEqual(normalize('a\x01b'), 'ab');                   // a real control is removed
+  // and Metaspace does not double a leading meta symbol, or invent one for nothing
+  assert.deepStrictEqual(preTokenize(''), []);
+  assert.deepStrictEqual(preTokenize(normalize(' hello')), ['▁hello']);
+  assert.deepStrictEqual(preTokenize(normalize('   ')), ['▁']);
+  assert.deepStrictEqual(preTokenize(normalize('▁already')), ['▁already']);
+  assert.deepStrictEqual(preTokenize(normalize('query:  ਮੌਤ')), ['▁query:', '▁ਮੌਤ']);
+});
+
 /** See encoder.test.js: what ~0.3% cross-runtime drift can and cannot change. */
 function assertSameRetrieval(label, js, py) {
   const a = js.map(h => h.id), b = py.map(h => h.id);

@@ -56,6 +56,12 @@ COPY package.json package.json
 RUN out="$(DB_PATH=/nonexistent node apps/web/server.js 2>&1 || true)"; \
     echo "$out" | grep -q 'database not found' \
       || { echo "server did not reach startup:"; echo "$out"; exit 1; }
+# That check stops at the server's FIRST line of defence, though, and most of
+# its modules are required after it: cluster.js, cors.js, limits.js, logging.js,
+# accounts/*, bundle.js, and the lazily-required ask/* and query encoder. So the
+# graph is walked as well -- every relative require() reachable from server.js
+# must resolve to a file that is actually in this image. No module is run.
+RUN node -e 'const fs=require("fs"),path=require("path");const seen=new Set();(function walk(f){if(seen.has(f))return;seen.add(f);if(!/\.[cm]?js$/.test(f))return;const src=fs.readFileSync(f,"utf8");for(const m of src.matchAll(/require\(\s*["\x27](\.{1,2}\/[^"\x27]+)["\x27]\s*\)/g))walk(require.resolve(path.resolve(path.dirname(f),m[1])));})(path.resolve("apps/web/server.js"));console.log("require graph: "+seen.size+" files resolve")'
 
 USER node
 EXPOSE 8080

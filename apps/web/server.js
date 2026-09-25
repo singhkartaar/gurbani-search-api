@@ -49,6 +49,7 @@ const AKJ_PATH = process.env.AKJ_PATH || path.join(ARTIFACTS, 'akj.sqlite');
 const PURAN_PATH = process.env.PURAN_PATH || path.join(ARTIFACTS, 'puran.sqlite');
 const VIRSINGH_PATH = process.env.VIRSINGH_PATH || path.join(ARTIFACTS, 'virsingh.sqlite');
 const RAGHBIR_PATH = process.env.RAGHBIR_PATH || path.join(ARTIFACTS, 'raghbir.sqlite');
+const BARIARAN_PATH = process.env.BARIARAN_PATH || path.join(ARTIFACTS, 'bariaran.sqlite');
 // The order is the order a reader is offered them, so it is editorial rather
 // than alphabetical: Bau Ji first, because his is the corpus this began with,
 // then Sahib Singh's commentary, then the four bodies of English prose.
@@ -58,6 +59,7 @@ const CORPORA = [
   { key: 'puran', dir: 'puran-en', db: PURAN_PATH },
   { key: 'virsingh', dir: 'virsingh-en', db: VIRSINGH_PATH },
   { key: 'raghbir', dir: 'raghbir-en', db: RAGHBIR_PATH },
+  { key: 'bariaran', dir: 'bariaran-en', db: BARIARAN_PATH },
 ];
 const DEFAULT_CORPUS = 'writings';
 // A search returns whole passages, at most this many. Both floors are off by
@@ -180,7 +182,14 @@ async function tryLoadEncoder(name, entry) {
     // long before either matters.
     const key = JSON.stringify([modelDir, opts.tokenizer, opts.pooling, opts.queryPrefix]);
     if (!encoders.has(key)) {
-      encoders.set(key, await createNodeEncoder(modelDir, { ...opts, maxLen: Math.max(opts.maxLen || 0, 256) }));
+      const enc = await createNodeEncoder(modelDir, { ...opts, maxLen: Math.max(opts.maxLen || 0, 256) });
+      // a short, stable name for this model, for anything that keeps vectors
+      // and must know which encoder made them: the model dir by name, not by
+      // path, so a laptop and the container agree
+      enc.fingerprint = crypto.createHash('sha256')
+        .update(JSON.stringify([opts.modelDir || 'bge-small-en-v1.5', opts.tokenizer, opts.pooling, opts.queryPrefix]))
+        .digest('hex').slice(0, 12);
+      encoders.set(key, enc);
       console.log(`index "${name}": query encoder loaded (${opts.tokenizer}, ${opts.pooling} pooling)`);
     } else {
       console.log(`index "${name}": query encoder shared`);
@@ -876,7 +885,8 @@ async function handleRequest(req, res) {
   // In readers mode only the routes that spend money are gated -- search and
   // the page itself are open, cheap, and under the limiter above.
   const gated = url.pathname !== '/api/health' && url.pathname !== '/api/token'
-    && (!identify.readers || url.pathname.startsWith('/api/ask') || url.pathname === '/api/me');
+    && (!identify.readers || url.pathname.startsWith('/api/ask') || url.pathname === '/api/me'
+        || url.pathname.startsWith('/api/admin/'));
   if (gated) {
     const ident = await identify(req).catch(() => null);
     if (!ident) {

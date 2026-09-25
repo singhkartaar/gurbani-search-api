@@ -69,6 +69,7 @@ nothing here is fetched unless asked for.
 | `writings-puran` | Prof. Puran Singh | 6 | his own English |
 | `writings-virsingh` | Bhai Vir Singh | 6 | translations; two OCR-damaged books held back |
 | `writings-raghbir` | Bhai Raghbir Singh | 1 | translation |
+| `writings-bariaran` | Sant Kartar Singh Ji Bariaranwale (the life, compiled by Bhai Joginder Singh Chopra and Bibi Gurbaksh Kaur; the discourses, his own) | 2 | translation |
 
 These are published on the project owner's statement (16 September 2026) that
 the writings are offered as a service to readers and that no licensing issue

@@ -117,7 +117,10 @@ class VectorIndex {
   idAt(row) { return this.ids ? this.ids[row] : row; }
 
   rowOf(id) {
-    if (!this.ids) return id;
+    // without an ids table the id IS the row, so it has to be one: an id past
+    // the end read zeros and scales of undefined, and came back as k confident
+    // rows scored NaN
+    if (!this.ids) return Number.isInteger(id) && id >= 0 && id < this.n ? id : -1;
     if (!this._rowOf) {
       this._rowOf = new Map();
       for (let i = 0; i < this.ids.length; i += 1) this._rowOf.set(this.ids[i], i);
@@ -142,11 +145,65 @@ class VectorIndex {
    * precision once rather than twice.
    */
   search(query, k = 10, opts = {}) {
-    if (k <= 0) return [];
-    const { dim, codes, scales, n, mask } = this;
+    const { dim, codes, scales, n } = this;
+    // k sizes a typed array: a fraction wrote past its end (a hit with no id),
+    // and a huge one was an allocation error rather than "everything"
+    k = Math.min(Math.floor(k), n);
+    if (!(k >= 1)) return [];
     if (query.length !== dim) throw new Error(`query dim ${query.length} != ${dim}`);
+    for (let i = 0; i < dim; i += 1) {
+      if (!Number.isFinite(query[i])) throw new Error('query vector is not finite');
+    }
     const excludeRow = opts.excludeRow ?? -1;
     const filter = opts.filter ?? null;
+
+    /**
+     * `opts.mask` — narrow the search with data instead of a predicate.
+     *
+     * It **replaces** this index's own mask rather than adding to it, so a
+     * caller that has one must combine them itself. That is deliberate: the
+     * callers who narrow (a corpus restricting to one book) do it the same way
+     * on every search, and can build the combined mask once and keep it,
+     * instead of this allocating and ANDing `n` bytes per query.
+     *
+     * Why not just use `filter`: a predicate is a JavaScript function, and a
+     * kernel written in something other than JavaScript cannot call one 60,000
+     * times without giving back everything it saved. A mask is bytes, and the
+     * kernel already takes one. So a narrowing expressible as data stays fast
+     * and a genuinely arbitrary one is honestly slow.
+     */
+    if (opts.mask && opts.mask.length !== n) {
+      throw new Error(`mask length ${opts.mask.length} != ${n}`);
+    }
+    const mask = opts.mask || this.mask;
+
+    /**
+     * `opts.kernel` — someone else's scan, for a runtime where this loop is too
+     * slow to be an interaction.
+     *
+     * It exists for one measured reason: Hermes has no JIT, and on a Pixel 7
+     * Pro this loop takes **527ms** over the 60,403-row Gurmukhi index where V8
+     * takes 14.6ms. That is not a wait, it is a frozen screen. Nothing on a
+     * server ever passes this, and the default remains the loop below.
+     *
+     * The contract is the whole of it: given the same buffers it must return
+     * the same rows with the same **rounded** scores, so that the ordering —
+     * higher score first, lower row on a tie — is identical. Rounding happens
+     * inside the kernel, on the raw dot product times the row's scale, exactly
+     * as `roundScore` does here; a kernel that rounds later, or accumulates in
+     * float32 rather than double, can reorder a tie. `apps/mobile/test/
+     * kernel-seam.test.js` holds a reference kernel to that, and the app checks
+     * its native one against this loop on the device itself.
+     *
+     * A `filter` keeps the scan here: it is a JavaScript predicate per row, and
+     * calling back into JS 60,403 times would cost more than the scan it saved.
+     */
+    if (opts.kernel && !filter) {
+      const hits = opts.kernel({ codes, scales, mask, dim, n, query, k, excludeRow });
+      const res = hits.map(h => ({ id: this.idAt(h.row), row: h.row, score: h.score }));
+      res.sort((a, b) => (b.score - a.score) || (a.row - b.row));
+      return res;
+    }
 
     const heap = new TopKHeap(k);
     for (let row = 0; row < n; row += 1) {
@@ -165,6 +222,10 @@ class VectorIndex {
   similarTo(id, k = 10, opts = {}) {
     const row = this.rowOf(id);
     if (row < 0) return [];
+    // A masked row is kept out of results; it must be kept out of the question
+    // too. Lines with no text all embed to the same vector, so asked for their
+    // neighbours they returned k confident, meaningless ones.
+    if (this.mask && this.mask[row] === 0) return [];
     return this.search(this.vectorAt(row), k, { ...opts, excludeRow: row });
   }
 }

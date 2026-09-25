@@ -22,7 +22,7 @@ Needs Node 22 or newer (it uses `node:sqlite`). No database server, no build
 step, no toolchain.
 
 ```bash
-git clone https://github.com/gurmukhi-repo/gurbani-search-api
+git clone https://github.com/singhkartaar/gurbani-search-api
 cd gurbani-search-api
 npm install
 npm run fetch-data -- --core-only     # 46MB; drop the flag for everything
@@ -55,7 +55,7 @@ fetched once and mounted:
 
 ```bash
 npm run fetch-data -- --core-only
-docker run -p 8080:8080 -v "$PWD/data:/data:ro" ghcr.io/gurmukhi-repo/gurbani-search-api
+docker run -p 8080:8080 -v "$PWD/data:/data:ro" ghcr.io/singhkartaar/gurbani-search-api
 ```
 
 ## What it answers

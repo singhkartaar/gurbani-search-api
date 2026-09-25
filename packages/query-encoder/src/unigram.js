@@ -114,17 +114,26 @@ class UnigramTokenizer {
  */
 const span = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 const cls = codes => new RegExp('[' + codes.map(c => String.fromCharCode(c)).join('') + ']', 'g');
-const CONTROL = cls([...span(0x00, 0x08), 0x0b, 0x0c, ...span(0x0e, 0x1f), ...span(0x7f, 0x9f)]);
-const SPACES = cls([0x09, 0x0a, 0x0d, 0xa0, 0x1680, ...span(0x2000, 0x200a), 0x2028, 0x2029, 0x202f, 0x205f, 0x3000]);
-const ZERO_WIDTH = cls([0x200b, 0x200c, 0x200d, 0xfeff]);
+const CONTROL = cls([...span(0x00, 0x08), 0x0b, ...span(0x0e, 0x1f), ...span(0x7f, 0x9f)]);
+// What the model's own normalizer turns into a plain space. The zero-width
+// characters are in this list, NOT deleted: tokenizer.json maps ZWJ, ZWNJ,
+// ZWSP, the BOM and the direction marks to a space, so a conjunct typed with a
+// ZWJ is two words to the model that built the index, and must be two words
+// here or the query lands somewhere the index never was. Checked against the
+// Python `tokenizers` package over the cases in test/unigram.test.js.
+const SPACES = cls([0x09, 0x0a, 0x0c, 0x0d, 0xa0, 0x1680, ...span(0x2000, 0x200f), 0x2028, 0x2029,
+  0x202f, 0x205f, 0x3000, 0xfeff, 0xfffd, 0x2581]);
 
 function normalize(text) {
-  return text.normalize('NFKC').replace(CONTROL, '').replace(SPACES, ' ').replace(ZERO_WIDTH, '');
+  // runs of spaces collapse to one, as the normalizer's Replace(" {2,}") does
+  return text.normalize('NFKC').replace(CONTROL, '').replace(SPACES, ' ').replace(/ {2,}/g, ' ');
 }
 
-/** Metaspace with add_prefix_space: one word per ▁-prefixed run. */
+/** Metaspace with add_prefix_space: one word per ▁-prefixed run, and no second ▁ on text that already leads with one. */
 function preTokenize(text) {
-  const s = (META + text).replace(/ /g, META);
+  if (text.length === 0) return [];
+  let s = text.replace(/ /g, META);
+  if (!s.startsWith(META)) s = META + s;
   const words = [];
   let start = 0;
   for (let i = 1; i < s.length; i += 1) {

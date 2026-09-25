@@ -119,7 +119,11 @@ class WordPieceTokenizer {
    */
   constructor(tokenizerJson, norm = undefined) {
     this.norm = norm;
-    this.vocab = tokenizerJson.model.vocab;
+    // A null-prototype copy, never the parsed object itself: on a plain object
+    // `vocab['constructor']` is Object's own constructor, not undefined, so the
+    // word "constructor" came back as a function where an id belonged and the
+    // BigInt tensor refused it -- one ordinary English word, and the query threw.
+    this.vocab = Object.assign(Object.create(null), tokenizerJson.model.vocab);
     this.unkToken = tokenizerJson.model.unk_token || '[UNK]';
     this.unkId = this.vocab[this.unkToken];
     this.clsId = this.vocab['[CLS]'];

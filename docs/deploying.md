@@ -37,7 +37,7 @@ many times what this needs. No cold starts, a predictable bill, generous or
 unmetered egress, and `docker compose up` is the whole deployment.
 
 ```bash
-git clone https://github.com/gurmukhi-repo/gurbani-search-api && cd gurbani-search-api
+git clone https://github.com/singhkartaar/gurbani-search-api && cd gurbani-search-api
 npm ci && npm run fetch-data
 docker compose up -d
 ```

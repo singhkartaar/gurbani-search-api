@@ -30,7 +30,11 @@ const shipping = dir => {
   const mp = path.join(dir, 'manifest.json');
   if (!fs.existsSync(mp)) return null;
   const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
-  return Array.isArray(m.roles) && m.roles.length === 0 ? null : m;
+  if (Array.isArray(m.roles) && m.roles.length === 0) return null;
+  // a documents index holds passages of prose, not lines of the Granth: it has
+  // no lines.i8 and none of what follows is about it
+  if (m.kind === 'documents') return null;
+  return m;
 };
 if (fs.existsSync(ARTIFACTS)) {
   const rootManifest = shipping(ARTIFACTS);
@@ -198,8 +202,12 @@ test('an English and a Gurmukhi index disagree on some neighbours -- they are di
 test('ISOLATION: lexical search works with the vector artifacts absent', { skip: !HAS_DB }, async () => {
   // The single most important structural guarantee: a user with no semantic
   // index (or a build where embedding failed) still gets a working app.
-  const bare = await core.loadArtifacts(core.nodeReadFile(ARTIFACTS), { semantic: false });
-  assert.strictEqual(bare.lines, null);
+  // The root is no longer guaranteed to be an index, so any index will do --
+  // and with none built at all, the lexical half below is still the point.
+  if (englishIndex) {
+    const bare = await core.loadArtifacts(core.nodeReadFile(englishIndex[1]), { semantic: false });
+    assert.strictEqual(bare.lines, null);
+  }
   const db = core.openNodeAdapter(CORPUS);
   const hits = core.firstLetterAnywhere(db, 'knjq', { limit: 10 });
   assert.ok(hits.length > 0, 'first-letter search must not depend on vectors');
@@ -222,7 +230,7 @@ test('ISOLATION: no vector file is opened during a lexical query', { skip: !HAS_
 });
 
 test('LATENCY: lexical p95 under 50ms, semantic p95 under 100ms', { skip: !HAS_ART || !HAS_DB }, async () => {
-  const art = await core.loadArtifacts(core.nodeReadFile(ARTIFACTS));
+  const art = await core.loadArtifacts(core.nodeReadFile(englishIndex[1]));
   const db = core.openNodeAdapter(CORPUS);
   const queries = db.all(
     `SELECT first_letters_ascii FROM lines WHERE LENGTH(first_letters_ascii)>=5 LIMIT 200`, [])

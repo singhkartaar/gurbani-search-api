@@ -6,7 +6,7 @@
 # are mounted at runtime -- so it stays small and carries nothing that is not
 # this repository's to distribute.
 #
-#   docker run -p 8080:8080 -v "$PWD/data:/data:ro" ghcr.io/gurmukhi-repo/gurbani-search-api
+#   docker run -p 8080:8080 -v "$PWD/data:/data:ro" ghcr.io/singhkartaar/gurbani-search-api
 name: publish image
 
 on:
