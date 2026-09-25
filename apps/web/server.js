@@ -50,6 +50,7 @@ const PURAN_PATH = process.env.PURAN_PATH || path.join(ARTIFACTS, 'puran.sqlite'
 const VIRSINGH_PATH = process.env.VIRSINGH_PATH || path.join(ARTIFACTS, 'virsingh.sqlite');
 const RAGHBIR_PATH = process.env.RAGHBIR_PATH || path.join(ARTIFACTS, 'raghbir.sqlite');
 const BARIARAN_PATH = process.env.BARIARAN_PATH || path.join(ARTIFACTS, 'bariaran.sqlite');
+const RAMA_PATH = process.env.RAMA_PATH || path.join(ARTIFACTS, 'rama.sqlite');
 // The order is the order a reader is offered them, so it is editorial rather
 // than alphabetical: Bau Ji first, because his is the corpus this began with,
 // then Sahib Singh's commentary, then the four bodies of English prose.
@@ -60,6 +61,7 @@ const CORPORA = [
   { key: 'virsingh', dir: 'virsingh-en', db: VIRSINGH_PATH },
   { key: 'raghbir', dir: 'raghbir-en', db: RAGHBIR_PATH },
   { key: 'bariaran', dir: 'bariaran-en', db: BARIARAN_PATH },
+  { key: 'rama', dir: 'rama-en', db: RAMA_PATH },
 ];
 const DEFAULT_CORPUS = 'writings';
 // A search returns whole passages, at most this many. Both floors are off by

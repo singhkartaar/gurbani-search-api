@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "02ee6d6d76f3",
-  "built": "2026-09-25T18:03:28.352Z",
+  "version": "82f626096f8d",
+  "built": "2026-09-25T18:28:38.836Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -1260,6 +1260,83 @@
           "bytes_plain": 1536,
           "sha256_plain": "1df357c2ef3a9b2817ef797ced7dc524cc570f0c05534f11fcefc09ff22ed897",
           "path": "artifacts/corpora/bariaran-en/pca.mean.f32"
+        }
+      ]
+    },
+    "writings-rama": {
+      "required": false,
+      "default": false,
+      "requires": [
+        "english"
+      ],
+      "label": "The writings of Bhai Rama Singh Ji",
+      "why": "Bhai Rama Singh Ji's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
+      "bytes": 1023384,
+      "bytes_on_disk": 1805106,
+      "count": 7,
+      "files": [
+        {
+          "asset": "writings-rama.rama.sqlite.gz",
+          "bytes": 301607,
+          "sha256": "90437a871537830e3bebb4380dd36b06ab6997d1c5a515b1e69737c0984b8f4c",
+          "encoding": "gzip",
+          "bytes_plain": 974848,
+          "sha256_plain": "0e863d19bd042ade2386d47d6163b1b1bfbc31e22eb812fddeef8599a5b98b79",
+          "path": "artifacts/rama.sqlite"
+        },
+        {
+          "asset": "writings-rama.rama-en.manifest.json.gz",
+          "bytes": 529,
+          "sha256": "1267f84b8d5bd4ed385ba166beac461a72a6346484836ccbffb80adad536e2db",
+          "encoding": "gzip",
+          "bytes_plain": 941,
+          "sha256_plain": "2fb08c0f9fbbe6274d02026bb258d6bd2de8cd3f4bae237b02e903fbc914dc3e",
+          "path": "artifacts/corpora/rama-en/manifest.json"
+        },
+        {
+          "asset": "writings-rama.rama-en.units.i8.gz",
+          "bytes": 350633,
+          "sha256": "4bb92da74f8b25c72cc9cb759a9dc0eab71b7d05f16f7f071ff4d486b26bc3fc",
+          "encoding": "gzip",
+          "bytes_plain": 426240,
+          "sha256_plain": "1f57c18003036ca2b1d41cb630754ec744c448667670e3ce75a8df8dd3c87b62",
+          "path": "artifacts/corpora/rama-en/units.i8"
+        },
+        {
+          "asset": "writings-rama.rama-en.units.scale.f32.gz",
+          "bytes": 5748,
+          "sha256": "1ef7c80372e825ca2f8a5a0664a25d09af673f9cda352c865023d94b22cacf70",
+          "encoding": "gzip",
+          "bytes_plain": 6660,
+          "sha256_plain": "964d9b0b07b0097f89fa5383f4714c38184497290bcfc1e42b521d312d414db6",
+          "path": "artifacts/corpora/rama-en/units.scale.f32"
+        },
+        {
+          "asset": "writings-rama.rama-en.units.mask.u8.gz",
+          "bytes": 34,
+          "sha256": "275620aa88f6c96466c3bc392c0816e03329f225973ac4242425f1a1429266e7",
+          "encoding": "gzip",
+          "bytes_plain": 1665,
+          "sha256_plain": "206d07ce9aa10bf6ffd1118ffae43fc92c8f2275c6c8dcdebf49e2602f6f31db",
+          "path": "artifacts/corpora/rama-en/units.mask.u8"
+        },
+        {
+          "asset": "writings-rama.rama-en.pca.components.f32.gz",
+          "bytes": 363346,
+          "sha256": "c2f7736c97a6b85ef8beebd762832ea34d808044ed8467236964d19241536894",
+          "encoding": "gzip",
+          "bytes_plain": 393216,
+          "sha256_plain": "97b5b39f4ea5e7556da52b9486c182810c935a1112bd11742524e1dbe668f535",
+          "path": "artifacts/corpora/rama-en/pca.components.f32"
+        },
+        {
+          "asset": "writings-rama.rama-en.pca.mean.f32.gz",
+          "bytes": 1487,
+          "sha256": "30900ccf1c058a1e3eb93f31decef78f04f47010f1707c5ef498624c44ae59af",
+          "encoding": "gzip",
+          "bytes_plain": 1536,
+          "sha256_plain": "416e79c6a9842db23a2f5c5914edd48bec0752ed3be179327f78a4e16af252e2",
+          "path": "artifacts/corpora/rama-en/pca.mean.f32"
         }
       ]
     }
