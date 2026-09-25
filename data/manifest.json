@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "677249b669aa",
-  "built": "2026-09-25T16:52:47.568Z",
+  "version": "a85a80bc042a",
+  "built": "2026-09-25T17:34:26.086Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -1194,26 +1194,26 @@
       ],
       "label": "The writings of Sant Kartar Singh Ji Bariaranwale",
       "why": "Sant Kartar Singh Ji Bariaranwale's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
-      "bytes": 937011,
-      "bytes_on_disk": 1595348,
+      "bytes": 938211,
+      "bytes_on_disk": 1599444,
       "count": 7,
       "files": [
         {
           "asset": "writings-bariaran.bariaran.sqlite.gz",
-          "bytes": 256399,
-          "sha256": "809d071c3a197bda443cd860443b900dcbda5b58e1b500d46c4323918f42d19b",
+          "bytes": 257597,
+          "sha256": "944f6a8c9cade5291a5665195040277c3db57e0ec1a5ba9321a36a606a3c6277",
           "encoding": "gzip",
-          "bytes_plain": 811008,
-          "sha256_plain": "dcea32783a911ddbb1b004e4b32160a27fe0fa863e1b638eaea3e80eb8aa540d",
+          "bytes_plain": 815104,
+          "sha256_plain": "3db3f79eb630fc522c9d2560b5673cdd4d918f65d4705e00c318d48e6574d3de",
           "path": "artifacts/bariaran.sqlite"
         },
         {
           "asset": "writings-bariaran.bariaran-en.manifest.json.gz",
-          "bytes": 538,
-          "sha256": "f6f9b9e31c081a566a310c16562ca4e61e7d678f4278fe5f1ee8f6637e88603a",
+          "bytes": 540,
+          "sha256": "6c7c33d0473504383a62689d2cf37b57fd5be7edf93a5591e98ed5129b64289f",
           "encoding": "gzip",
           "bytes_plain": 959,
-          "sha256_plain": "c38e9d9d8a0af7c51667c0e125ba25d0d90491244e6bb16301511ff2eadef3ca",
+          "sha256_plain": "19d6ccbf6b1d0f41fb9f390b4207786c0da77a30ac976940cff31a842502fe96",
           "path": "artifacts/corpora/bariaran-en/manifest.json"
         },
         {
