@@ -71,10 +71,13 @@ nothing here is fetched unless asked for.
 | `writings-raghbir` | Bhai Raghbir Singh | 1 | translation |
 | `writings-bariaran` | Sant Kartar Singh Ji Bariaranwale (the life, compiled by Bhai Joginder Singh Chopra and Bibi Gurbaksh Kaur; the discourses, his own) | 2 | translation |
 | `writings-rama` | Bhai Rama Singh Ji | 1 | translation |
+| `writings-rampurkhera` | Sant Harnaam Singh Rampur Khera | 1 | translation |
+| `writings-barusahib` | Baru Sahib (the Kalgidhar Trust: *Drug Addiction*, ed. Dr. (Col.) Rajinder Singh, and seventeen shorter articles by several writers) | 2 | their own English |
 
 These are published on the project owner's statement (16 September 2026) that
 the writings are offered as a service to readers and that no licensing issue
-applies to their publication here. Each passage carries its author's name and
+applies to their publication here, confirmed for `writings-barusahib`, the
+Kalgidhar Trust's own publications, on 30 September 2026. Each passage carries its author's name and
 its book and page, and `original` says whether the words are the author's own
 English or a translator's. The permission paragraph below applies to these packs
 exactly as it does to the scripture data: it was obtained for *this*

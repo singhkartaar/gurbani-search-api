@@ -105,6 +105,32 @@ test('load returns rows in the order asked, with their citations attached', asyn
   await assert.rejects(() => store.encode('x'), /no query encoder/);
 });
 
+test('a pooled text names itself where the pack has units.section, and older packs still load', async () => {
+  const { files } = fakeCorpus();
+  const art = await loadCorpus(async n => files[n]);
+  // the stub above cannot answer the column probe: an older pack, no section
+  const old = new CorpusStore({ art, db: stubDb });
+  assert.strictEqual(old.hasSection, false);
+  assert.strictEqual(old.load([0])[0].section, null);
+  let asked = '';
+  const withSection = {
+    all(sql, params) {
+      if (sql.includes("pragma_table_info('units')")) return [{ name: 'section' }];
+      if (sql.includes('FROM units u JOIN works')) {
+        asked = sql;
+        return ROWS.filter(r => params.includes(r.unit_row)).map(r => ({ ...r, section: r.unit_row === 2 ? 'Haumai' : null }));
+      }
+      return stubDb.all(sql, params);
+    },
+  };
+  const store = new CorpusStore({ art, db: withSection });
+  assert.strictEqual(store.hasSection, true);
+  const rows = store.load([2, 0]);
+  assert.match(asked, /u\.section/);
+  assert.strictEqual(rows[0].section, 'Haumai');
+  assert.strictEqual(rows[1].section, null);
+});
+
 test('narrowing to a work is a mask, and it says exactly what the predicate said', () => {
   const { manifest, files } = fakeCorpus();
   const store = new CorpusStore({ art: corpusFromBytes(manifest, files), db: stubDb });

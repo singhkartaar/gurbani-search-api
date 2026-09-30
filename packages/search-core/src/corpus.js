@@ -100,6 +100,15 @@ class CorpusStore {
     this.kernel = kernel;
     this.workMasks = new Map();     // work_id -> Uint8Array, built once; see maskForWork
     this.works = db.all('SELECT * FROM works ORDER BY title', []);
+    // A collection pools short texts into one work and names each passage's
+    // own text in units.section. Packs built before the column existed do not
+    // have it, and a SELECT naming it would fail on them, so it is asked for
+    // only where it is there.
+    let section = false;
+    try {
+      section = db.all("SELECT name FROM pragma_table_info('units') WHERE name = 'section'", []).length > 0;
+    } catch { /* an adapter that cannot answer this has no such column to read */ }
+    this.hasSection = section;
     // which work each row belongs to, so a reader can search inside one book.
     // A few thousand short strings; the alternative is a query per search.
     this.workOf = [];
@@ -197,6 +206,7 @@ class CorpusStore {
     const marks = rows.map(() => '?').join(',');
     const units = this.db.all(
       `SELECT u.unit_row, u.unit_id, u.work_id, u.part, u.page, u.para_no, u.marker, u.text,
+              ${this.hasSection ? 'u.section,' : ''}
               w.title, w.title_en, w.author, w.quote_policy, w.original
          FROM units u JOIN works w ON w.work_id = u.work_id
         WHERE u.unit_row IN (${marks})`, rows);
@@ -210,7 +220,7 @@ class CorpusStore {
     }
     const order = new Map(rows.map((r, i) => [r, i]));
     return units
-      .map(u => ({ ...u, original: Boolean(u.original), cites: byUnit.get(u.unit_row) || [] }))
+      .map(u => ({ ...u, section: u.section || null, original: Boolean(u.original), cites: byUnit.get(u.unit_row) || [] }))
       .sort((a, b) => order.get(a.unit_row) - order.get(b.unit_row));
   }
 

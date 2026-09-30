@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "82f626096f8d",
-  "built": "2026-09-25T18:28:38.836Z",
+  "version": "e843cecdd75c",
+  "built": "2026-09-30T17:06:29.885Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -1337,6 +1337,160 @@
           "bytes_plain": 1536,
           "sha256_plain": "416e79c6a9842db23a2f5c5914edd48bec0752ed3be179327f78a4e16af252e2",
           "path": "artifacts/corpora/rama-en/pca.mean.f32"
+        }
+      ]
+    },
+    "writings-rampurkhera": {
+      "required": false,
+      "default": false,
+      "requires": [
+        "english"
+      ],
+      "label": "The writings of Sant Harnaam Singh Rampur Khera",
+      "why": "Sant Harnaam Singh Rampur Khera's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
+      "bytes": 1079851,
+      "bytes_on_disk": 1854757,
+      "count": 7,
+      "files": [
+        {
+          "asset": "writings-rampurkhera.rampurkhera.sqlite.gz",
+          "bytes": 338643,
+          "sha256": "b9dbd2f274c1965da3f2670e742e55472be8aae180f8e83bbfe4f8565c3abd23",
+          "encoding": "gzip",
+          "bytes_plain": 999424,
+          "sha256_plain": "ed4dc71417df9dfd3e4b5b21791e629b0142cfae22101bd2571768b8933a1cc2",
+          "path": "artifacts/rampurkhera.sqlite"
+        },
+        {
+          "asset": "writings-rampurkhera.rampurkhera-en.manifest.json.gz",
+          "bytes": 540,
+          "sha256": "8d2f8e86ec421cbf82d5b81830c4516e1d35dcb8903ae1453fd1c6ca8f499834",
+          "encoding": "gzip",
+          "bytes_plain": 960,
+          "sha256_plain": "a95223692082d14f9a725ed66612945499935d4caabb6cbf557c2a9af97126e7",
+          "path": "artifacts/corpora/rampurkhera-en/manifest.json"
+        },
+        {
+          "asset": "writings-rampurkhera.rampurkhera-en.units.i8.gz",
+          "bytes": 369718,
+          "sha256": "96b937d72790feed4543b4a1d5ddc6e6bdd2bfce0bb6f0b2e817525c6964bc71",
+          "encoding": "gzip",
+          "bytes_plain": 450816,
+          "sha256_plain": "1d55495a173e77ed514f5e15db958d660d88ce9d442f99ae43c25104dbde4f4f",
+          "path": "artifacts/corpora/rampurkhera-en/units.i8"
+        },
+        {
+          "asset": "writings-rampurkhera.rampurkhera-en.units.scale.f32.gz",
+          "bytes": 6060,
+          "sha256": "4cd884075acf08b144e361e5380b5afb343a0b6dd41f73c7d9c1da33b40705f9",
+          "encoding": "gzip",
+          "bytes_plain": 7044,
+          "sha256_plain": "3cdaa89675fa4b162161dca6aa7d52309f667bb8afbedc653d7cc35258d1e612",
+          "path": "artifacts/corpora/rampurkhera-en/units.scale.f32"
+        },
+        {
+          "asset": "writings-rampurkhera.rampurkhera-en.units.mask.u8.gz",
+          "bytes": 34,
+          "sha256": "66509562d5ce725782479f211f1e8e9df869da1df4d481c6d917b84b066b186e",
+          "encoding": "gzip",
+          "bytes_plain": 1761,
+          "sha256_plain": "5fb9aed931d78fd304398b51af348966b74caefa317b726b3252481fae5ec507",
+          "path": "artifacts/corpora/rampurkhera-en/units.mask.u8"
+        },
+        {
+          "asset": "writings-rampurkhera.rampurkhera-en.pca.components.f32.gz",
+          "bytes": 363365,
+          "sha256": "f1c1031c210c577267eb356c08ffee38e9c44d472580f8d779b542ed5291375e",
+          "encoding": "gzip",
+          "bytes_plain": 393216,
+          "sha256_plain": "f665e5245834539e2c7af3fb630ced4c6efabe33db544cbf9fd4ddd045684eb2",
+          "path": "artifacts/corpora/rampurkhera-en/pca.components.f32"
+        },
+        {
+          "asset": "writings-rampurkhera.rampurkhera-en.pca.mean.f32.gz",
+          "bytes": 1491,
+          "sha256": "5d92537706cef73c3f8ad52cf3e4da8f76d4d3310e5ecaac6763522f7de32e0d",
+          "encoding": "gzip",
+          "bytes_plain": 1536,
+          "sha256_plain": "05f936d42bd7cb2c6202f71bb3164287be01973d1fc86773d1638f6da330b24e",
+          "path": "artifacts/corpora/rampurkhera-en/pca.mean.f32"
+        }
+      ]
+    },
+    "writings-barusahib": {
+      "required": false,
+      "default": false,
+      "requires": [
+        "english"
+      ],
+      "label": "The writings of Baru Sahib",
+      "why": "Baru Sahib's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
+      "bytes": 1699729,
+      "bytes_on_disk": 3185625,
+      "count": 7,
+      "files": [
+        {
+          "asset": "writings-barusahib.barusahib.sqlite.gz",
+          "bytes": 635295,
+          "sha256": "0718f6bb462ffdcdb2f63424ba105aad98c02f5d34fd2b4d5821d34aaac54942",
+          "encoding": "gzip",
+          "bytes_plain": 1921024,
+          "sha256_plain": "2fc7c4ede59eaa7f1304019c338ab8bf86a67136683d39b451009f248685ae99",
+          "path": "artifacts/barusahib.sqlite"
+        },
+        {
+          "asset": "writings-barusahib.barusahib-en.manifest.json.gz",
+          "bytes": 687,
+          "sha256": "c3e310cd205914bb8e574ed691f219573a51fa79d62c8b33094dfcd247467f6a",
+          "encoding": "gzip",
+          "bytes_plain": 1241,
+          "sha256_plain": "a8f9f9673aed276c18ee3abcf8c4866227a4e3af367f78044a00daa826cdd440",
+          "path": "artifacts/corpora/barusahib-en/manifest.json"
+        },
+        {
+          "asset": "writings-barusahib.barusahib-en.units.i8.gz",
+          "bytes": 687440,
+          "sha256": "cd0a1e96a467fa110b53aaec74484e25c039cd2b59346843a3b3818ae51ca3bc",
+          "encoding": "gzip",
+          "bytes_plain": 851968,
+          "sha256_plain": "a14bb319d2a38472cddf9a000049840ecab35a4f8c695542ca2140c93ee382bd",
+          "path": "artifacts/corpora/barusahib-en/units.i8"
+        },
+        {
+          "asset": "writings-barusahib.barusahib-en.units.scale.f32.gz",
+          "bytes": 11402,
+          "sha256": "a09ed82d7daf98ccf6b80fd883787b79a6001fdc857fafda8842af9e195a21ad",
+          "encoding": "gzip",
+          "bytes_plain": 13312,
+          "sha256_plain": "88060525dacc911147af87574cb00871f8ac9f72d4afe4c899af78dda8779dea",
+          "path": "artifacts/corpora/barusahib-en/units.scale.f32"
+        },
+        {
+          "asset": "writings-barusahib.barusahib-en.units.mask.u8.gz",
+          "bytes": 38,
+          "sha256": "84830eb0fef6d60dcf7504b0003d751999c6495b1de7dfc92541ad84e85e3e08",
+          "encoding": "gzip",
+          "bytes_plain": 3328,
+          "sha256_plain": "8519e89dbe7531afff7a5a7359d0ec682f1e40cd04a82cb36ac0084bc92967db",
+          "path": "artifacts/corpora/barusahib-en/units.mask.u8"
+        },
+        {
+          "asset": "writings-barusahib.barusahib-en.pca.components.f32.gz",
+          "bytes": 363375,
+          "sha256": "c3de979ce6aa36c6cd73550dc8d564885cb54bdcab2e4eaf803fe4fac485895a",
+          "encoding": "gzip",
+          "bytes_plain": 393216,
+          "sha256_plain": "0d2e0d3bfb036155894a1f5326db8b3ec53c0503ea0003014bae83d8fd8f33c2",
+          "path": "artifacts/corpora/barusahib-en/pca.components.f32"
+        },
+        {
+          "asset": "writings-barusahib.barusahib-en.pca.mean.f32.gz",
+          "bytes": 1492,
+          "sha256": "1f7ccde5f4b27853e21a30f5a9d2ac64156436b4c7ed0d93c26dc8eccf09ee92",
+          "encoding": "gzip",
+          "bytes_plain": 1536,
+          "sha256_plain": "7a40d4aba3783e1593357d28881d9ad638ac2fc0f63f0066d9f6b69c08937d9a",
+          "path": "artifacts/corpora/barusahib-en/pca.mean.f32"
         }
       ]
     }

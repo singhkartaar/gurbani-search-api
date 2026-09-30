@@ -51,6 +51,8 @@ const VIRSINGH_PATH = process.env.VIRSINGH_PATH || path.join(ARTIFACTS, 'virsing
 const RAGHBIR_PATH = process.env.RAGHBIR_PATH || path.join(ARTIFACTS, 'raghbir.sqlite');
 const BARIARAN_PATH = process.env.BARIARAN_PATH || path.join(ARTIFACTS, 'bariaran.sqlite');
 const RAMA_PATH = process.env.RAMA_PATH || path.join(ARTIFACTS, 'rama.sqlite');
+const RAMPURKHERA_PATH = process.env.RAMPURKHERA_PATH || path.join(ARTIFACTS, 'rampurkhera.sqlite');
+const BARUSAHIB_PATH = process.env.BARUSAHIB_PATH || path.join(ARTIFACTS, 'barusahib.sqlite');
 // The order is the order a reader is offered them, so it is editorial rather
 // than alphabetical: Bau Ji first, because his is the corpus this began with,
 // then Sahib Singh's commentary, then the four bodies of English prose.
@@ -62,6 +64,15 @@ const CORPORA = [
   { key: 'raghbir', dir: 'raghbir-en', db: RAGHBIR_PATH },
   { key: 'bariaran', dir: 'bariaran-en', db: BARIARAN_PATH },
   { key: 'rama', dir: 'rama-en', db: RAMA_PATH },
+  // `answerAs` is the name an Ask answer gives the passages' voice, where it is
+  // not the author's name the Writings section shows: Se Kinehiya calls Sant
+  // Harnaam Singh Ji "Baba Ji" throughout, and an answer should say "Baba Ji
+  // taught", not "Sant Harnaam Singh Rampur Khera explains that Baba Ji taught".
+  { key: 'rampurkhera', dir: 'rampurkhera-en', db: RAMPURKHERA_PATH, answerAs: 'Baba Ji' },
+  // Many writers under one banner: the Kalgidhar Trust's English, a book of its
+  // own only past 100 pages and every shorter text pooled as "Articles", each
+  // passage naming its article (units.section; rosters/barusahib.json).
+  { key: 'barusahib', dir: 'barusahib-en', db: BARUSAHIB_PATH },
 ];
 const DEFAULT_CORPUS = 'writings';
 // A search returns whole passages, at most this many. Both floors are off by
@@ -690,7 +701,7 @@ const routes = {
     const passage = (key, r, extra) => ({
       corpus: key, unit_row: r.unit_row, unit_id: r.unit_id, work: r.work_id,
       title: r.title, title_en: r.title_en || null, author: r.author, original: r.original,
-      part: r.part, page: r.page, marker: r.marker, ...extra, text: r.text,
+      part: r.part, section: r.section || null, page: r.page, marker: r.marker, ...extra, text: r.text,
       cites: r.cites.map(c => ({ shabad_id: c.shabad_id, line_id: c.line_id, ang: c.ang })),
     });
     const finish = results => ({
@@ -954,14 +965,27 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // Revalidated, never cached blind: /app.js and /app.css keep their names
+  // across deploys, so a max-age would run yesterday's UI against today's API.
+  // `no-cache` with a validator costs a round trip and no bytes when nothing
+  // changed, which on a phone is most of what a max-age would have saved.
   fs.readFile(file, (err, data) => {
     if (err) {
       res.writeHead(404, { ...H, 'content-type': 'text/plain; charset=utf-8' });
       res.end('not found');
       return;
     }
+    const etag = '"' + require('node:crypto').createHash('sha1').update(data).digest('base64url') + '"';
+    const cache = { etag, 'cache-control': 'no-cache' };
+    const seen = String(req.headers['if-none-match'] || '').split(',').map(s => s.trim().replace(/^W\//, ''));
+    if (seen.includes(etag)) {
+      res.writeHead(304, { ...H, ...cache });
+      res.end();
+      return;
+    }
     res.writeHead(200, {
       ...H,
+      ...cache,
       'content-type': MIME[path.extname(file)] || 'application/octet-stream',
     });
     res.end(data);

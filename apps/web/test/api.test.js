@@ -276,6 +276,29 @@ test('POST is refused with 405', { skip: !HAS_DB }, async () => {
   assert.strictEqual((await fetch(BASE + '/api/text', { method: 'POST' })).status, 405);
 });
 
+// The page's files keep their names across deploys, so they are revalidated
+// rather than cached blind: an unchanged file costs a 304 and no bytes.
+test('the page\'s files carry a validator, and an unchanged one comes back as a bodiless 304', { skip: !HAS_DB }, async () => {
+  const first = await fetch(BASE + '/app.js');
+  assert.strictEqual(first.status, 200);
+  const etag = first.headers.get('etag');
+  assert.match(etag || '', /^"[\w-]+"$/);
+  assert.strictEqual(first.headers.get('cache-control'), 'no-cache', 'no max-age: that would serve yesterday\'s UI');
+  assert.ok((await first.text()).length > 0);
+  const again = await fetch(BASE + '/app.js', { headers: { 'if-none-match': etag } });
+  assert.strictEqual(again.status, 304);
+  assert.strictEqual(again.headers.get('etag'), etag);
+  assert.strictEqual((await again.text()).length, 0);
+  const weak = await fetch(BASE + '/app.js', { headers: { 'if-none-match': `"other", W/${etag}` } });
+  assert.strictEqual(weak.status, 304, 'a list, and a proxy\'s weak form, both match');
+  const stale = await fetch(BASE + '/app.js', { headers: { 'if-none-match': '"not-this-one"' } });
+  assert.strictEqual(stale.status, 200);
+  const head = await fetch(BASE + '/', { method: 'HEAD' });
+  assert.strictEqual(head.status, 200);
+  assert.ok(head.headers.get('etag'));
+  assert.notStrictEqual(head.headers.get('etag'), etag, 'each file its own');
+});
+
 // The writings: a search returns whole passages, a bounded number of them,
 // each with the shabads it cites. Skips where this build carries no corpus.
 test('writings search: bounded, floored, scored, and the id spaces never cross', { skip: !HAS_DB }, async () => {

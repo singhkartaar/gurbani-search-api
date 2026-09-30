@@ -2,10 +2,17 @@
 /**
  * Cross-origin access, off unless asked for.
  *
- * The API is read-only and every route is a GET, so the risk CORS carries here
- * is not someone changing data -- it is someone READING data as you. That only
- * matters when APP_PASSWORD is set, and it is why credentials are never granted
- * to a wildcard.
+ * Search is read-only and every search route is a GET, so the risk CORS carries
+ * here is not someone changing data -- it is someone READING data as you. That
+ * only matters when APP_PASSWORD is set, and it is why credentials are never
+ * granted to a wildcard.
+ *
+ * A preflight allows GET, HEAD and OPTIONS and never POST, on purpose. A build
+ * that also answers questions takes them, and issues reader tokens, by POST --
+ * and those are for this site's own page and its app only (the app is native,
+ * and a native client sends no preflight). Allowed cross-origin, one wildcard
+ * would let any page on the internet spend its visitors' daily questions and
+ * the owner's budget from their browsers.
  *
  *   CORS_ORIGINS unset        no CORS headers at all, and OPTIONS stays a 405.
  *                             Byte-identical to having none of this code.
