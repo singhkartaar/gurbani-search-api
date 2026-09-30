@@ -53,6 +53,7 @@ const BARIARAN_PATH = process.env.BARIARAN_PATH || path.join(ARTIFACTS, 'bariara
 const RAMA_PATH = process.env.RAMA_PATH || path.join(ARTIFACTS, 'rama.sqlite');
 const RAMPURKHERA_PATH = process.env.RAMPURKHERA_PATH || path.join(ARTIFACTS, 'rampurkhera.sqlite');
 const BARUSAHIB_PATH = process.env.BARUSAHIB_PATH || path.join(ARTIFACTS, 'barusahib.sqlite');
+const RATWARA_PATH = process.env.RATWARA_PATH || path.join(ARTIFACTS, 'ratwara.sqlite');
 // The order is the order a reader is offered them, so it is editorial rather
 // than alphabetical: Bau Ji first, because his is the corpus this began with,
 // then Sahib Singh's commentary, then the four bodies of English prose.
@@ -73,6 +74,9 @@ const CORPORA = [
   // own only past 100 pages and every shorter text pooled as "Articles", each
   // passage naming its article (units.section; rosters/barusahib.json).
   { key: 'barusahib', dir: 'barusahib-en', db: BARUSAHIB_PATH },
+  // Sant Waryam Singh Ji's books under the banner "Ratwara Sahib"; an answer
+  // speaks of him by name, as it does of Baba Ji for Se Kinehiya.
+  { key: 'ratwara', dir: 'ratwara-en', db: RATWARA_PATH, answerAs: 'Sant Waryam Singh Ji' },
 ];
 const DEFAULT_CORPUS = 'writings';
 // A search returns whole passages, at most this many. Both floors are off by

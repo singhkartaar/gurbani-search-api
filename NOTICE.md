@@ -72,6 +72,7 @@ nothing here is fetched unless asked for.
 | `writings-bariaran` | Sant Kartar Singh Ji Bariaranwale (the life, compiled by Bhai Joginder Singh Chopra and Bibi Gurbaksh Kaur; the discourses, his own) | 2 | translation |
 | `writings-rama` | Bhai Rama Singh Ji | 1 | translation |
 | `writings-rampurkhera` | Sant Harnaam Singh Rampur Khera | 1 | translation |
+| `writings-ratwara` | Ratwara Sahib: Sant Waryam Singh Ji (*Amar Gatha*, tr. Prof. Beant Singh; *Surat Shabad Marg*; *The Light Immortal*) | 3 | translation |
 | `writings-barusahib` | Baru Sahib (the Kalgidhar Trust: *Drug Addiction*, ed. Dr. (Col.) Rajinder Singh, and seventeen shorter articles by several writers) | 2 | their own English |
 
 These are published on the project owner's statement (16 September 2026) that
