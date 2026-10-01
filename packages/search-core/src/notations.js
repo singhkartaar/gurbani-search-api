@@ -30,7 +30,24 @@ const g = require('./gurmukhi.js');
 
 // how a writer is named on the page, by author_key, over the name the books' manifests gave
 // the database ("Prin Dyal Singh"); a published database is never edited, so the name is set here
-const AUTHOR_NAMES = { 'prin-dyal-singh': 'Principal Dyal Singh' };
+const AUTHOR_NAMES = {
+  'prin-dyal-singh': 'Principal (Gyani) Dyal Singh Ji',
+  'prof-tara-singh': 'Professor Tara Singh Ji',
+};
+
+// and each book's title and part as the page names them: the manifests gave some a file
+// name ("gurmat sangeet sagar part 3") and only part 1 its number
+const BOOKS = {
+  'gurmat-sangeet-sagar-1': { title: 'Gurmat Sangeet Sagar', part: 1 },
+  'gurmat-sangeet-sagar-part-2': { title: 'Gurmat Sangeet Sagar', part: 2 },
+  'gurmat-sangeet-sagar-part-3': { title: 'Gurmat Sangeet Sagar', part: 3 },
+  'gurmat-sangeet-sagar-part-4': { title: 'Gurmat Sangeet Sagar', part: 4 },
+  'guru-ram-das-rag-ratnavali': { title: 'Guru Raam Daas Raag Ratnaavli' },
+  'guru-arjun-dev-rag-ratnavali': { title: 'Guru Arjun Dev Raag Ratnaavli' },
+  'guru-amardass-raag-ratnakar-punjabi-by-prof-tara-singh': { title: 'Guru Amardaas Raag Ratnakar' },
+  'guru-tegh-bahadur-rag-ratnavali': { title: 'Guru Tegh Bahadur Raag Ratnaavli' },
+  'bhagat-raag-ratnavali': { title: 'Bhagat Raag Ratnaavli' },
+};
 
 const PAGE_MAX = 100;
 const Q_MAX = 120;
@@ -69,7 +86,11 @@ class NotationsStore {
     this.taals = new Map(rowsOf(db, 'SELECT * FROM taals').map(r => [r.key, { ...r, vibhag: parseJson(r.vibhag, []), tali: parseJson(r.tali, []), khali: parseJson(r.khali, []) }]));
     this.authors = new Map(rowsOf(db, 'SELECT * FROM authors')
       .map(r => [r.author_key, { ...r, name: AUTHOR_NAMES[r.author_key] || r.name }]));
-    this.books = new Map(rowsOf(db, 'SELECT * FROM books ORDER BY author_key, part, book_key').map(r => [r.book_key, { ...r, style: parseJson(r.style, {}) }]));
+    this.books = new Map(rowsOf(db, 'SELECT * FROM books')
+      .map(r => ({ ...r, ...BOOKS[r.book_key], style: parseJson(r.style, {}) }))
+      .sort((a, b) => a.author_key.localeCompare(b.author_key) || (a.part ?? 0) - (b.part ?? 0)
+                      || String(a.title).localeCompare(String(b.title)))
+      .map(r => [r.book_key, r]));
     this.counts = new Map(rowsOf(db, 'SELECT shabad_id, n FROM shabad_counts').map(r => [r.shabad_id, r.n]));
     this.shabadLines = new Map();
     this.firstLines = this.loadFirstLines();

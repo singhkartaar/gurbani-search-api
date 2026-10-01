@@ -60,8 +60,8 @@ test('summary, counts and the roster', () => {
   assert.deepStrictEqual([gauri.used, gauri.prescribed], [0, 2]);
   assert.deepStrictEqual(r.taals.map(t => [t.key, t.n]), [['dadra', 3], ['teentaal', 1]]);
   assert.deepStrictEqual(r.authors.map(a => [a.author_key, a.n]), [['prin-dyal-singh', 3], ['prof-tara-singh', 1]]);
-  // Principal written out; any other writer as the database names them
-  assert.deepStrictEqual(r.authors.map(a => a.name), ['Principal Dyal Singh', 'Prof. Tara Singh']);
+  // the writers as the page names them, not as the books' manifests did
+  assert.deepStrictEqual(r.authors.map(a => a.name), ['Principal (Gyani) Dyal Singh Ji', 'Professor Tara Singh Ji']);
   assert.strictEqual(r.books.length, 2);
   assert.ok(store.known('raag', 'gauri') && !store.known('raag', 'nope') && store.known('book', 'rr') && !store.known('taal', 'x'));
 });
@@ -115,7 +115,7 @@ test('a card says what the reader needs and get() adds the grid, the images and 
   assert.strictEqual(card.first_line, 'ਮਨ ਕਹਾ ਲੁਭਾਈਐ ਆਨ ਕਉ ॥');
   assert.strictEqual(card.translit_roman, 'man kahaa lubhaaeeai aan kau ||');
   assert.deepStrictEqual([card.author, card.book_title_en, card.raag_used_en, card.taal_en, card.raag_differs, card.has_grid, card.verified],
-                         ['Principal Dyal Singh', 'Gurmat Sangeet Sagar', 'Bhairavi', 'Teentaal', true, true, false]);
+                         ['Principal (Gyani) Dyal Singh Ji', 'Gurmat Sangeet Sagar', 'Bhairavi', 'Teentaal', true, true, false]);
   // no thumbnail: the card shows the first crop instead (thumbnails need not be published)
   assert.deepStrictEqual(card.thumb, { path: 'gss-1/images/gss-1-0171-1-1.png', url: null });
   const got = store.get('gss-1:0168:1');
@@ -155,4 +155,30 @@ test('without the corpus, cards carry the stored first line and a Gurmukhi query
   assert.strictEqual(card.translit_roman, null);
   assert.strictEqual(store.list({ q: 'ਸਾਕਤ' }).total, 2);
   assert.strictEqual(store.list({ q: 'saakat' }).total, 0);
+});
+
+test('a book is named and numbered as the page shows it, parts in order', () => {
+  const d = tmpDir();
+  const nf = path.join(d, 'notations.sqlite');
+  const gf = path.join(d, 'gurbani.sqlite');
+  buildNotations(nf);
+  buildGurbani(gf);
+  // two of the real books, as their manifests named them: a part in the file name only
+  const { DatabaseSync } = require('node:sqlite');
+  const raw = new DatabaseSync(nf);
+  const row = { author_key: 'prin-dyal-singh', title_en: null, publisher: null, year: null, source_url: null, style: '{}', pages: 1,
+                notations: 0, resolved: 0, verified: 0, images_bytes: 0, passed_bar: 0, built: 'x' };
+  for (const [book_key, title, part] of [['gurmat-sangeet-sagar-part-3', 'gurmat sangeet sagar part 3', null],
+                                         ['guru-ram-das-rag-ratnavali', 'guru ram das rag ratnavali', null]]) {
+    const r = { ...row, book_key, title, part, author_key: book_key.startsWith('guru') ? 'prof-tara-singh' : 'prin-dyal-singh' };
+    raw.prepare(`INSERT INTO books (${Object.keys(r).join(',')}) VALUES (${Object.keys(r).map(() => '?').join(',')})`).run(...Object.values(r));
+  }
+  raw.close();
+  const store = new NotationsStore({ db: openNodeAdapter(nf), gurbani: openNodeAdapter(gf) });
+  const books = store.roster().books.map(b => [b.book_key, b.title, b.part]);
+  assert.deepStrictEqual(books.filter(b => b[0] !== 'gss-1' && b[0] !== 'rr'),
+                         [['gurmat-sangeet-sagar-part-3', 'Gurmat Sangeet Sagar', 3],
+                          ['guru-ram-das-rag-ratnavali', 'Guru Raam Daas Raag Ratnaavli', null]]);
+  // the part follows the book's other parts
+  assert.ok(books.findIndex(b => b[0] === 'gss-1') < books.findIndex(b => b[0] === 'gurmat-sangeet-sagar-part-3'));
 });
