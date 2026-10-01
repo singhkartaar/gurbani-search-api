@@ -73,7 +73,9 @@ nothing here is fetched unless asked for.
 | `writings-rama` | Bhai Rama Singh Ji | 1 | translation |
 | `writings-rampurkhera` | Sant Harnaam Singh Rampur Khera | 1 | translation |
 | `writings-ratwara` | Ratwara Sahib: Sant Waryam Singh Ji (*Amar Gatha*, tr. Prof. Beant Singh; *Surat Shabad Marg*; *The Light Immortal*) | 3 | translation |
-| `writings-barusahib` | Baru Sahib (the Kalgidhar Trust: *Sikh Faith* by Baba Iqbal Singh Ji; Sant Teja Singh's *Asa di Var*, *Japji Sahib* and *The Sikh Religion*; *Drug Addiction*, ed. Dr. (Col.) Rajinder Singh; and seventeen shorter articles by several writers) | 5 | their own English |
+| `writings-barusahib` | Baru Sahib (the Kalgidhar Trust: *Sikh Faith* by Baba Iqbal Singh Ji; Sant Teja Singh's *Asa di Var*, *Japji Sahib* and *The Sikh Religion*; *Drug Addiction*, ed. Dr. (Col.) Rajinder Singh; and seventeen shorter articles by several writers; Sant Teja Singh's *Jiwan Katha* of Sant Attar Singh Ji in Punjabi, OCR'd, 88% of it in a machine's English) | 6 | their own English; the Jiwan Katha machine-translated |
+| `writings-barusahib-pa` | Baru Sahib, in Punjabi: Sant Teja Singh's *Jiwan Katha* of Sant Attar Singh Ji Maharaj (Mastuane Wale), two volumes, OCR'd | 1 | Punjabi as printed |
+| `writings-santhya-pa` | Bhai Vir Singh: *Santhya Sri Guru Granth Sahib*, seven volumes (angs 1-607), OCR'd | 1 | Punjabi as printed; public domain (he died in 1957) |
 
 These are published on the project owner's statement (16 September 2026) that
 the writings are offered as a service to readers and that no licensing issue

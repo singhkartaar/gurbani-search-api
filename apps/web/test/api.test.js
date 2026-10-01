@@ -50,7 +50,7 @@ const pa = () => health && health.indexes[PA()] && health.indexes[PA()].loaded;
 test('health reports the translations this build can show', { skip: !HAS_DB }, () => {
   assert.strictEqual(typeof health.translations, 'object');
   for (const [lang, on] of Object.entries(health.translations)) {
-    assert.ok(['en', 'pa', 'pad', 'fk'].includes(lang));
+    assert.ok(['en', 'pa', 'pad', 'fk', 'vs'].includes(lang));
     assert.strictEqual(typeof on, 'boolean');
   }
 });
@@ -167,6 +167,12 @@ test('translations come back only when asked for, in the language asked for', { 
   if (langs.fk) {
     const fk = (await get('/api/fl?q=' + encodeURIComponent('ਕਨਜ') + '&limit=5&tr=fk')).body;
     assert.ok(fk.results.some(r => r.tr_fk && /[਀-੿]/.test(r.tr_fk)), 'Faridkot text is Gurmukhi');
+  }
+  // Bhai Vir Singh's Santhya, line by line, where this build carries it (angs 1-607)
+  if (langs.vs) {
+    const vs = (await get('/api/shabad?id=26&tr=vs')).body;
+    const lines = vs.lines || vs.shabad?.lines || [];
+    assert.ok(lines.some(r => r.tr_vs && /[਀-੿]/.test(r.tr_vs)), 'Japji pauri 26 carries the Santhya in Gurmukhi');
   }
   // an unknown language is ignored rather than an error
   const junk = await get('/api/fl?q=' + encodeURIComponent('ਕਨਜ') + '&limit=1&tr=xx');

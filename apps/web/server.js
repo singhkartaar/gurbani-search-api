@@ -53,6 +53,8 @@ const BARIARAN_PATH = process.env.BARIARAN_PATH || path.join(ARTIFACTS, 'bariara
 const RAMA_PATH = process.env.RAMA_PATH || path.join(ARTIFACTS, 'rama.sqlite');
 const RAMPURKHERA_PATH = process.env.RAMPURKHERA_PATH || path.join(ARTIFACTS, 'rampurkhera.sqlite');
 const BARUSAHIB_PATH = process.env.BARUSAHIB_PATH || path.join(ARTIFACTS, 'barusahib.sqlite');
+const BARUSAHIB_PA_PATH = process.env.BARUSAHIB_PA_PATH || path.join(ARTIFACTS, 'barusahib-pa.sqlite');
+const SANTHYA_PA_PATH = process.env.SANTHYA_PA_PATH || path.join(ARTIFACTS, 'santhya-pa.sqlite');
 const RATWARA_PATH = process.env.RATWARA_PATH || path.join(ARTIFACTS, 'ratwara.sqlite');
 // The order is the order a reader is offered them, so it is editorial rather
 // than alphabetical: Bau Ji first, because his is the corpus this began with,
@@ -74,6 +76,15 @@ const CORPORA = [
   // own only past 100 pages and every shorter text pooled as "Articles", each
   // passage naming its article (units.section; rosters/barusahib.json).
   { key: 'barusahib', dir: 'barusahib-en', db: BARUSAHIB_PATH },
+  // The same banner's Punjabi: Sant Teja Singh's Jiwan Katha of Sant Attar
+  // Singh Ji, OCR'd from the Trust's scans (data/books/sant-teja-singh) and
+  // searched in Gurmukhi as printed. Its English, machine-translated, is in
+  // barusahib-en. Gurmukhi corpora embed with the model the core pack carries.
+  { key: 'barusahib-pa', dir: 'barusahib-pa', db: BARUSAHIB_PA_PATH },
+  // Bhai Vir Singh's Santhya Sri Guru Granth Sahib, its seven volumes OCR'd
+  // (data/books/santhya), in his own Punjabi: a commentary, each passage
+  // linked to the lines it explains (the links table).
+  { key: 'santhya-pa', dir: 'santhya-pa', db: SANTHYA_PA_PATH },
   // Sant Waryam Singh Ji's books under the banner "Ratwara Sahib"; an answer
   // speaks of him by name, as it does of Baba Ji for Se Kinehiya.
   { key: 'ratwara', dir: 'ratwara-en', db: RATWARA_PATH, answerAs: 'Sant Waryam Singh Ji' },
@@ -231,15 +242,19 @@ const lineCols = `line_id, verse_id, shabad_id, ang, position_in_shabad,
 //        stops short of 5,300 lines where Manmohan Singh's Punjabi fills in
 //   pad  Sahib Singh's pad-arth: the hard words of the line, each with its meaning
 //   fk   Faridkot Teeka -- the sampradayak reading
+//   vs   Bhai Vir Singh's Santhya -- his explanation of each line, built on the
+//        Faridkot Teeka, OCR'd from the seven printed volumes (angs 1-607;
+//        pipeline/python/30_line_commentary.py). The web app's one teeka button
+//        asks for fk and vs together and shows both where both exist
 //
 // The Darpan's machine English (en-ss-mt, en-ss-pad-mt) is deliberately NOT a
 // view. A machine rendering of Sahib Singh is good enough to retrieve with and
 // to hand a model as context, and not good enough to put in front of a reader
 // as his words. It serves the English meaning indexes and Ask, both of which
 // read translations.sqlite directly, and it stops there.
-const TRANSLATORS = { en: ['bdb', 'ms'], pa: ['pa-ss', 'pa-ms'], pad: ['pa-ss-pad'], fk: ['pa-fk'] };
+const TRANSLATORS = { en: ['bdb', 'ms'], pa: ['pa-ss', 'pa-ms'], pad: ['pa-ss-pad'], fk: ['pa-fk'], vs: ['pa-santhya'] };
 
-/** Views a request asked to see beside the Gurmukhi: ?tr=en,pa,pad,fk */
+/** Views a request asked to see beside the Gurmukhi: ?tr=en,pa,pad,fk,vs */
 function parseLangs(url) {
   if (!tdb) return [];
   const raw = (url.searchParams.get('tr') || '').split(',').map(x => x.trim()).filter(Boolean);

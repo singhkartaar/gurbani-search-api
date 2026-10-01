@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "bb5bceb4a174",
-  "built": "2026-10-01T05:39:03.241Z",
+  "version": "bea55079c3c3",
+  "built": "2026-10-01T15:17:41.659Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -193,17 +193,17 @@
       "default": true,
       "label": "Translations and the Darpan",
       "why": "what ?tr= attaches, and the darpan block on /api/shabad",
-      "bytes": 32073262,
-      "bytes_on_disk": 119214080,
+      "bytes": 33026418,
+      "bytes_on_disk": 122970112,
       "count": 1,
       "files": [
         {
           "asset": "translations.translations.sqlite.gz",
-          "bytes": 32073262,
-          "sha256": "9fb8ebb80d86fb45ab2f4d7a0dab72376c2628b2c28000290198616ef20964ee",
+          "bytes": 33026418,
+          "sha256": "31ae93f38faee5bb9f0efe27d22974e72e390f8673d43499844de5eda8e708ad",
           "encoding": "gzip",
-          "bytes_plain": 119214080,
-          "sha256_plain": "f97d28dd799372b7c0071865564c9ab44ea9174d5d8d469251632358167c026e",
+          "bytes_plain": 122970112,
+          "sha256_plain": "1537999d19b145dbc8726cf6776f56a17b3b380a5f1a914f7a3c8457a34e3df3",
           "path": "artifacts/translations.sqlite"
         }
       ]
@@ -1425,71 +1425,71 @@
       ],
       "label": "The writings of Baru Sahib",
       "why": "Baru Sahib's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
-      "bytes": 1981255,
-      "bytes_on_disk": 3734196,
+      "bytes": 4581373,
+      "bytes_on_disk": 11566459,
       "count": 7,
       "files": [
         {
           "asset": "writings-barusahib.barusahib.sqlite.gz",
-          "bytes": 772354,
-          "sha256": "ce111b5580287b34f72ed70177d853b27e32ad5747bd39626098bb5966c6041a",
+          "bytes": 2388971,
+          "sha256": "23ca77f94542108776ef9da56719b8dbb76a545e48ae7005017ac8571eac908f",
           "encoding": "gzip",
-          "bytes_plain": 2297856,
-          "sha256_plain": "7cbc661a42e269ca2d7a5adabe99e6c8c4223e1b119bdba63e056c4e7c3cef4d",
+          "bytes_plain": 8945664,
+          "sha256_plain": "24ee5a7794777d35bdd6700d5f2a2cfdd5044d8ad67752555559592418f27378",
           "path": "artifacts/barusahib.sqlite"
         },
         {
           "asset": "writings-barusahib.barusahib-en.manifest.json.gz",
-          "bytes": 682,
-          "sha256": "dd5b976d357a159df7c3b046cc24fb5e4d0dad61a633d3f6b2c4539b7a767ca0",
+          "bytes": 704,
+          "sha256": "099f1a2d0b9fd3299f3f0b06002c7b4de3f387558c2d826e906bf1426aef0e74",
           "encoding": "gzip",
-          "bytes_plain": 1242,
-          "sha256_plain": "cb5afed1239f7ecef7325329682f4b64a853fb7bb55e8d79eaf6c1ac83ced92a",
+          "bytes_plain": 1279,
+          "sha256_plain": "041f60c2555651a689560349a81e305eb4ab337215058853a20211832dacb44c",
           "path": "artifacts/corpora/barusahib-en/manifest.json"
         },
         {
           "asset": "writings-barusahib.barusahib-en.units.i8.gz",
-          "bytes": 829501,
-          "sha256": "3cd3dca0a7fdcae4f7eddcf64e5c40b263343d5e755f7be8ed252d2fc02d914d",
+          "bytes": 1797292,
+          "sha256": "649b4db127a2b9afcbd4764eec8e1582349915b2a37e1dcb4ea0e16b72f346f7",
           "encoding": "gzip",
-          "bytes_plain": 1020416,
-          "sha256_plain": "ef7e21cde5e9ee34025f05b3f0274d544d1c00b9e89ae6ecd445c5936272ff8c",
+          "bytes_plain": 2182144,
+          "sha256_plain": "69d0e11b5541e3fbbf89fd68377834368b07779ba89b77d3c6bb56c7c26f9a07",
           "path": "artifacts/corpora/barusahib-en/units.i8"
         },
         {
           "asset": "writings-barusahib.barusahib-en.units.scale.f32.gz",
-          "bytes": 13686,
-          "sha256": "13d15586f66c799a65ca4b09eaec584a3409a7b403d53cb162f43580f116da01",
+          "bytes": 29371,
+          "sha256": "384360d96b897b763f6eb3ee32f689a6fd4f0e0bade39a3c93f85eeb3722c64b",
           "encoding": "gzip",
-          "bytes_plain": 15944,
-          "sha256_plain": "c76d045646680a2691ebcc3526c528b7da64c4cc8d6a3cbee86a4962b08cdcd8",
+          "bytes_plain": 34096,
+          "sha256_plain": "7ea0a4dc45e88f318311b6d7b142acec95a6c855bf64107b0fbc973cbf0cb9f3",
           "path": "artifacts/corpora/barusahib-en/units.scale.f32"
         },
         {
           "asset": "writings-barusahib.barusahib-en.units.mask.u8.gz",
-          "bytes": 39,
-          "sha256": "309258d37bdcc6997099282ce3967dd8a7f4551a3f04eaf3fd3baf1dcaa2efaa",
+          "bytes": 43,
+          "sha256": "a9d8ac987151ca936f8d0d2c15b847e56092acba076e0fba19c325072e83dd35",
           "encoding": "gzip",
-          "bytes_plain": 3986,
-          "sha256_plain": "6ab545bd7d5030df126a62178fa898ea633bbd15fb09477e9a20adecc1460abd",
+          "bytes_plain": 8524,
+          "sha256_plain": "737c7e7f427571fa2a9c1f260a91a17b34d1df7b1f029c465d90914d3a856b15",
           "path": "artifacts/corpora/barusahib-en/units.mask.u8"
         },
         {
           "asset": "writings-barusahib.barusahib-en.pca.components.f32.gz",
-          "bytes": 363498,
-          "sha256": "ce562adb22eec3b2a0a7d3c9705a0c743443a53748a2897ab1ca18812ef8e091",
+          "bytes": 363499,
+          "sha256": "e26b98d7ea24664b1f16bb53c61153df07d84af647998a285b8b203cae0e8108",
           "encoding": "gzip",
           "bytes_plain": 393216,
-          "sha256_plain": "56a3ecc5f59ce5171fe2287a45c789296e8d62d6f3668800bce5488866ff413b",
+          "sha256_plain": "ddfa72ac311f98e83f0ace58967cfddaaad64a0c18a0e1157627c56cee433eef",
           "path": "artifacts/corpora/barusahib-en/pca.components.f32"
         },
         {
           "asset": "writings-barusahib.barusahib-en.pca.mean.f32.gz",
-          "bytes": 1495,
-          "sha256": "d000c9a2e1d5ce14ca6947aa1a256338e22ac0f8d11fb9cfc5db8cfa19cd1982",
+          "bytes": 1493,
+          "sha256": "ad395b8d394b395d1d1c3884157011c283d8d21a1cedb2f78f38aa65d247eb76",
           "encoding": "gzip",
           "bytes_plain": 1536,
-          "sha256_plain": "65c7b5074ca05b5e38472f74fbf81d43e502033cdbb5c8215a7bf6f525964818",
+          "sha256_plain": "5230bc7673a4b1280d206cea6ccb73654de3ccaf99f237c631ab250a47914922",
           "path": "artifacts/corpora/barusahib-en/pca.mean.f32"
         }
       ]
@@ -1568,6 +1568,154 @@
           "bytes_plain": 1536,
           "sha256_plain": "872ead20e420dd84858f4dbdc05852c9f552b863fdb2f89d96ad3178fc379543",
           "path": "artifacts/corpora/ratwara-en/pca.mean.f32"
+        }
+      ]
+    },
+    "writings-barusahib-pa": {
+      "required": false,
+      "default": false,
+      "label": "The writings of Baru Sahib, in Punjabi",
+      "why": "Baru Sahib, in Punjabi's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
+      "bytes": 2467217,
+      "bytes_on_disk": 6847312,
+      "count": 7,
+      "files": [
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.sqlite.gz",
+          "bytes": 977184,
+          "sha256": "b4187f412aec1be6fb89e3254dbadc57bb0b1c6c0aae7b6da4592c36eaf74cfb",
+          "encoding": "gzip",
+          "bytes_plain": 5124096,
+          "sha256_plain": "b087cf0a295c0563db8d4dda546b3fd8c5d26c5a9c8d9977e18ab43083227357",
+          "path": "artifacts/barusahib-pa.sqlite"
+        },
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.manifest.json.gz",
+          "bytes": 682,
+          "sha256": "d0d7c31cb5943ce52ab9ebdedfc78a3b23894531b03d50a0a86643fae53a9297",
+          "encoding": "gzip",
+          "bytes_plain": 1279,
+          "sha256_plain": "25c79e4dadd24aa96a60afe822460b7796937f88b87e07015dbce97bd25865e3",
+          "path": "artifacts/corpora/barusahib-pa/manifest.json"
+        },
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.units.i8.gz",
+          "bytes": 1106595,
+          "sha256": "7b71e0f95be608621767a2334ba8bb16f60024cb44b57848659d0027a7bf32d1",
+          "encoding": "gzip",
+          "bytes_plain": 1301760,
+          "sha256_plain": "238b0b90e6fbdd9eecedf30076c7d02f3023aa2b451392f925ebf0bbee6de750",
+          "path": "artifacts/corpora/barusahib-pa/units.i8"
+        },
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.units.scale.f32.gz",
+          "bytes": 17756,
+          "sha256": "e1098b639fd4a91a86743397bf7a8b5188692990cdf8d0cfb4fb8b2e618821c8",
+          "encoding": "gzip",
+          "bytes_plain": 20340,
+          "sha256_plain": "6e1959e18ce1441a8efc72410fda288fee7514b57eef9cf4d8090a4596276ebe",
+          "path": "artifacts/corpora/barusahib-pa/units.scale.f32"
+        },
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.units.mask.u8.gz",
+          "bytes": 40,
+          "sha256": "cb1e0294136dc4a71b6170e341348fa0caf573aca318f081fa0000f77cee49d7",
+          "encoding": "gzip",
+          "bytes_plain": 5085,
+          "sha256_plain": "cadc3f89f979dcee0f5ee07501f7f1a95340b9530cbe7d9b3a508390a17845a2",
+          "path": "artifacts/corpora/barusahib-pa/units.mask.u8"
+        },
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.pca.components.f32.gz",
+          "bytes": 363478,
+          "sha256": "51778440afc299cb76e0f919e3427dfe81f121e76b6c5f704a10e133458f857b",
+          "encoding": "gzip",
+          "bytes_plain": 393216,
+          "sha256_plain": "708362e47dbccb0e8600558cabdbe2783b7fce4bfc5b3d3b09a84ec3b92d5659",
+          "path": "artifacts/corpora/barusahib-pa/pca.components.f32"
+        },
+        {
+          "asset": "writings-barusahib-pa.barusahib-pa.pca.mean.f32.gz",
+          "bytes": 1482,
+          "sha256": "57be6ead886f4ff28932e853542583e185bb2232b8c6890dc2a44dc86d0de22a",
+          "encoding": "gzip",
+          "bytes_plain": 1536,
+          "sha256_plain": "b0bfce2aca5aa04615f3a8c0278462924a44008262c39a67c51536949ce2e4f6",
+          "path": "artifacts/corpora/barusahib-pa/pca.mean.f32"
+        }
+      ]
+    },
+    "writings-santhya-pa": {
+      "required": false,
+      "default": false,
+      "label": "The writings of Bhai Vir Singh (the Santhya, in Punjabi)",
+      "why": "Bhai Vir Singh (the Santhya, in Punjabi)'s prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
+      "bytes": 10890321,
+      "bytes_on_disk": 29111801,
+      "count": 7,
+      "files": [
+        {
+          "asset": "writings-santhya-pa.santhya-pa.sqlite.gz",
+          "bytes": 5122986,
+          "sha256": "f985153b6469dd419bc352c59f497344c08b02d1c00e913d375654b31b4be07b",
+          "encoding": "gzip",
+          "bytes_plain": 22409216,
+          "sha256_plain": "c4087852db77e03004ef35ea8aef4658beaab875b77a5c2ec620f92258855bc0",
+          "path": "artifacts/santhya-pa.sqlite"
+        },
+        {
+          "asset": "writings-santhya-pa.santhya-pa.manifest.json.gz",
+          "bytes": 694,
+          "sha256": "60ffb2819f4e47024061c091240cb00cedd75c2283d05c38752b0cb1dd93d007",
+          "encoding": "gzip",
+          "bytes_plain": 1290,
+          "sha256_plain": "24dc4dc35e1e510630076229c1dde25c4fbeb9289e76651fef734c802c8f1c3e",
+          "path": "artifacts/corpora/santhya-pa/manifest.json"
+        },
+        {
+          "asset": "writings-santhya-pa.santhya-pa.units.i8.gz",
+          "bytes": 5317079,
+          "sha256": "eddbe7e6a086e99bd27ed062bbe09f356185cc1112d9f010c06b12bb3ad251fc",
+          "encoding": "gzip",
+          "bytes_plain": 6185728,
+          "sha256_plain": "6ace9c90638ff740f128ec7568641030c13c2957dd752d300f07e0801bfd69e1",
+          "path": "artifacts/corpora/santhya-pa/units.i8"
+        },
+        {
+          "asset": "writings-santhya-pa.santhya-pa.units.scale.f32.gz",
+          "bytes": 84467,
+          "sha256": "b9d67b673f059d2ef8b9b0dda419ed66111cc2761900193aea93a971f8dd251f",
+          "encoding": "gzip",
+          "bytes_plain": 96652,
+          "sha256_plain": "877e73e7f81a25dd99a5259ee0f8874504febd3cf0e1c8a65397c18545334f99",
+          "path": "artifacts/corpora/santhya-pa/units.scale.f32"
+        },
+        {
+          "asset": "writings-santhya-pa.santhya-pa.units.mask.u8.gz",
+          "bytes": 59,
+          "sha256": "1813a8fd8fb164b3461c3c3110f01d4fd5d1a152c12e2acb2627f9c8dc13bb1c",
+          "encoding": "gzip",
+          "bytes_plain": 24163,
+          "sha256_plain": "6c81f9b8d630278b7c4446800b8ddbb4bebd259831253a2a1c98334cc93ab68f",
+          "path": "artifacts/corpora/santhya-pa/units.mask.u8"
+        },
+        {
+          "asset": "writings-santhya-pa.santhya-pa.pca.components.f32.gz",
+          "bytes": 363540,
+          "sha256": "900b242fee470c96e1c8c8c6cfc3bd87bea30fbda9b3aa3da21bcf6aeb06d73f",
+          "encoding": "gzip",
+          "bytes_plain": 393216,
+          "sha256_plain": "fbd41a688426e3d5dba055f5b67537398bc5923c13be05adc7992766ebaf3ff2",
+          "path": "artifacts/corpora/santhya-pa/pca.components.f32"
+        },
+        {
+          "asset": "writings-santhya-pa.santhya-pa.pca.mean.f32.gz",
+          "bytes": 1496,
+          "sha256": "65acd85bd5c5924efb9f4f65e4446147f2dd73ede8ebfba608f1560ac0b0c7ee",
+          "encoding": "gzip",
+          "bytes_plain": 1536,
+          "sha256_plain": "e81717e4f8dcbd47cffc0f718808cca5569be4f45f78dbc5d38ac5a766dea31f",
+          "path": "artifacts/corpora/santhya-pa/pca.mean.f32"
         }
       ]
     }
