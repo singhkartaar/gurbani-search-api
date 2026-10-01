@@ -43,6 +43,18 @@ const TRANSLATIONS_PATH = process.env.TRANSLATIONS_PATH || path.join(ARTIFACTS, 
 // They are listed rather than hardcoded so that another costs a row here and
 // nothing else; one that is not on disk is simply absent.
 const CORPORA_DIR = path.join(ARTIFACTS, 'corpora');
+// The keertan notations (docs/notations.md): one database, built by the
+// pipeline's 32_build_notations_db.py, and the crops of the scans it points
+// at. The crops are release assets and the database carries their URLs;
+// NOTATION_IMAGES_DIR serves them from disk instead (development, or a
+// self-hoster who fetched the images), and NOTATION_IMAGES_BASE rewrites the
+// release prefix to a mirror. All optional: without the database the
+// feature is off and /api/health says so.
+const NOTATIONS_PATH = process.env.NOTATIONS_PATH || path.join(ARTIFACTS, 'notations.sqlite');
+const NOTATION_IMAGES_DIR = process.env.NOTATION_IMAGES_DIR ? path.resolve(process.env.NOTATION_IMAGES_DIR) : '';
+const NOTATION_IMAGES_BASE = process.env.NOTATION_IMAGES_BASE || '';
+const NOTATION_IMAGES_LOCAL = '/notation-images';
+const NOTATIONS_PAGE_MAX = 100;
 const WRITINGS_PATH = process.env.WRITINGS_PATH || path.join(ARTIFACTS, 'writings.sqlite');
 const TREATISES_PATH = process.env.TREATISES_PATH || path.join(ARTIFACTS, 'treatises.sqlite');
 const AKJ_PATH = process.env.AKJ_PATH || path.join(ARTIFACTS, 'akj.sqlite');
@@ -80,11 +92,15 @@ const CORPORA = [
   // Singh Ji, OCR'd from the Trust's scans (data/books/sant-teja-singh) and
   // searched in Gurmukhi as printed. Its English, machine-translated, is in
   // barusahib-en. Gurmukhi corpora embed with the model the core pack carries.
-  { key: 'barusahib-pa', dir: 'barusahib-pa', db: BARUSAHIB_PA_PATH },
+  // `label` is what a reader picks it by, where the author alone would name
+  // two corpora alike (Baru Sahib's English and Punjabi; Bhai Vir Singh's
+  // novels and his Santhya). `askable: false`: searched, never asked -- the
+  // Punjabi corpora are OCR as printed, and Ask answers from the English.
+  { key: 'barusahib-pa', dir: 'barusahib-pa', db: BARUSAHIB_PA_PATH, label: 'Baru Sahib (ਪੰਜਾਬੀ)', askable: false },
   // Bhai Vir Singh's Santhya Sri Guru Granth Sahib, its seven volumes OCR'd
   // (data/books/santhya), in his own Punjabi: a commentary, each passage
   // linked to the lines it explains (the links table).
-  { key: 'santhya-pa', dir: 'santhya-pa', db: SANTHYA_PA_PATH },
+  { key: 'santhya-pa', dir: 'santhya-pa', db: SANTHYA_PA_PATH, label: 'Bhai Vir Singh: Santhya (ਪੰਜਾਬੀ)', askable: false },
   // Sant Waryam Singh Ji's books under the banner "Ratwara Sahib"; an answer
   // speaks of him by name, as it does of Baba Ji for Se Kinehiya.
   { key: 'ratwara', dir: 'ratwara-en', db: RATWARA_PATH, answerAs: 'Sant Waryam Singh Ji' },
@@ -139,6 +155,23 @@ if (!fs.existsSync(DB_PATH)) {
 if (require('./cluster.js').startCluster()) return;
 
 const db = core.openNodeAdapter(DB_PATH);
+// The notations store: absent, or a database the app cannot read, leaves the
+// feature off and says why once. A reader of the rest of the app loses nothing.
+let notations = null;
+let notationsDb = null;
+if (fs.existsSync(NOTATIONS_PATH)) {
+  try {
+    notationsDb = core.openNodeAdapter(NOTATIONS_PATH);
+    notations = new core.NotationsStore({ db: notationsDb, gurbani: db });
+    const s = notations.summary();
+    console.log(`notations: ${s.notations} from ${s.books} book(s), ${s.images_published}/${s.images} images published`
+      + (NOTATION_IMAGES_DIR ? `, local images from ${NOTATION_IMAGES_DIR}` : ''));
+  } catch (err) {
+    console.warn('notations: off --', err.message);
+    try { if (notationsDb) notationsDb.close(); } catch {}
+    notations = null; notationsDb = null;
+  }
+}
 
 /** name -> { art, encoder, meta } for every index that loaded; `known` also holds the eligible ones that did not. */
 const indexes = {};
@@ -386,6 +419,57 @@ const shabadsByIds = ids => {
 // below was dead code behind a 404 about shabad zero.
 const absent = val => val === null || val === undefined || val === '';
 
+// notation responses change when the database is rebuilt, which is a deploy
+const NOTATION_CACHE = { 'cache-control': 'public, max-age=3600' };
+
+/** Where the browser fetches a crop: the release asset (or its mirror), else this server, else nothing. */
+function notationImageUrl(image) {
+  if (!image) return null;
+  return core.NotationsStore.imageUrl(image, {
+    localBase: NOTATION_IMAGES_DIR ? NOTATION_IMAGES_LOCAL : null,
+    urlBase: NOTATION_IMAGES_BASE || null,
+    releaseBase: NOTATION_IMAGES_BASE && notations ? (notations.meta.images_release_base || null) : null,
+  });
+}
+
+/**
+ * The count of notations on every search row and shabad, added after the
+ * handler so that the four search routes and /api/shabad gain it in one
+ * place: `notations: n` on a row, `shabad.notations` on a shabad. Additive
+ * fields only; a client that does not know them sees nothing new.
+ */
+function withNotationCounts(body) {
+  if (!notations || !body || typeof body !== 'object') return body;
+  if (Array.isArray(body.results)) notations.attachCounts(body.results);
+  if (body.shabad && body.shabad.shabad_id !== undefined && body.shabad.shabad_id !== null && body.shabad.notations === undefined) {
+    const n = notations.countFor(body.shabad.shabad_id);
+    if (n) body.shabad.notations = n;
+  }
+  return body;
+}
+
+/**
+ * The browser's copy of the notation renderer: the same modules the server
+ * uses, wrapped for a page with no bundler. Built once; the CSS the renderer
+ * carries is served beside it because the page's policy refuses inline style.
+ */
+const NOTATION_BROWSER_MODULES = ['notation-vocab.json', 'notation-vocab.js', 'notation.js', 'notation-render.js'];
+let notationBrowserBundle = null;
+function notationBundle() {
+  if (notationBrowserBundle) return notationBrowserBundle;
+  const dir = path.join(__dirname, '..', '..', 'packages', 'search-core', 'src');
+  const defs = NOTATION_BROWSER_MODULES.map(name => {
+    const src = fs.readFileSync(path.join(dir, name), 'utf8');
+    const body = name.endsWith('.json') ? `module.exports = ${src};` : src;
+    return `  ${JSON.stringify(name)}: function (module, exports, require) {\n${body}\n  },`;
+  }).join('\n');
+  notationBrowserBundle = `(function () {\n'use strict';\nconst defs = {\n${defs}\n};\nconst cache = {};\n`
+    + `function req(name) { const key = name.replace(/^\\.\\//, ''); if (!defs[key]) throw new Error('no module ' + name); `
+    + `if (!cache[key]) { const m = { exports: {} }; cache[key] = m.exports; defs[key](m, m.exports, req); cache[key] = m.exports; } return cache[key]; }\n`
+    + `window.NotationRender = req('notation-render.js');\nwindow.NotationContract = req('notation.js');\n})();\n`;
+  return notationBrowserBundle;
+}
+
 function parseBoundedInt(val, min, max, fallback) {
   if (absent(val)) return fallback;
   const n = Number(val);
@@ -521,6 +605,8 @@ const routes = {
       sources,
       default_index: indexes[DEFAULT_INDEX] ? DEFAULT_INDEX : (sources[0] || null),
       translations: availableLangs(),
+      // the keertan notations: counts, or {enabled:false} where the database is absent
+      notations: notations ? notations.summary() : { enabled: false },
       // Reported because the alternative is a browser console message that does
       // not say whether the server was configured or the origin was refused.
       api_version: API_VERSION,
@@ -538,7 +624,8 @@ const routes = {
       // it a deliberately parked corpus reads exactly like a failed build, and
       // the owner goes looking for a file that is sitting right there.
       corpora: CORPORA.map(c => (corpora.has(c.key)
-        ? { key: c.key, ...corpora.get(c.key).store.summary(), ask: Boolean(corpora.get(c.key).ask) }
+        ? { key: c.key, ...corpora.get(c.key).store.summary(), ask: Boolean(corpora.get(c.key).ask),
+            ...(c.label ? { label: c.label } : {}), ...(c.askable === false ? { askable: false } : {}) }
         : { key: c.key, enabled: false, ...(c.ship === false ? { shipped: false } : {}) })),
       // legacy summary fields, for the default index
       semantic: Boolean(indexes[DEFAULT_INDEX]),
@@ -642,6 +729,63 @@ const routes = {
   // The prose corpora: each has an id space of its own, and its own routes, so
   // that a passage row can never reach a route that resolves ids against
   // gurbani.sqlite. `?corpus=` picks one; omitting it means the writings.
+  // ---- keertan notations ----------------------------------------------------
+  // Three routes and no path parameters: the router is an exact match on the
+  // pathname, and the public OpenAPI test scrapes these keys.
+  /** The facets a reader browses by, with counts: raags used and prescribed, taals, authors, books. */
+  '/api/notations': () => {
+    if (!notations) return { error: 'this deployment carries no notations', code: 503 };
+    return { ...notations.roster(), headers: NOTATION_CACHE };
+  },
+
+  /**
+   * Notations as cards, filtered and paged. `raag` is the raag the composer
+   * used (a parent covers its forms); `shabad_raag` the one the Granth
+   * prescribes; `q` finds the shabad by any of its lines, in Gurmukhi, Roman
+   * or first letters (a card found by a later line carries it as
+   * `matched_line`). Unknown keys are 400s, not empty lists, so a client learns
+   * about a typo.
+   */
+  '/api/notations/list': url => {
+    if (!notations) return { error: 'this deployment carries no notations', code: 503 };
+    const p = url.searchParams;
+    const q = (p.get('q') || '').trim();
+    if (q.length > MAX_QUERY_CHARS) return { error: `query longer than ${MAX_QUERY_CHARS} characters`, code: 400 };
+    const filter = { q, k: parseBoundedInt(p.get('k'), 1, NOTATIONS_PAGE_MAX, 20), page: parseBoundedInt(p.get('page'), 1, 100000, 1),
+                     verified: p.get('verified') === '1' };
+    for (const [param, key, kind] of [['raag', 'raag', 'raag'], ['shabad_raag', 'shabadRaag', 'raag'], ['author', 'author', 'author'],
+                                      ['book', 'book', 'book'], ['taal', 'taal', 'taal']]) {
+      const v = p.get(param);
+      if (v === null || v === '') continue;
+      if (!notations.known(kind, v)) return { error: `unknown ${param} "${v}"`, code: 400 };
+      filter[key] = v;
+    }
+    if (p.get('shabad') !== null) {
+      const id = parseNonNegativeInt(p.get('shabad'));
+      if (id === null) return { error: 'invalid shabad parameter', code: 400 };
+      filter.shabad = id;
+    }
+    const out = notations.list(filter);
+    out.results.forEach(c => { c.thumb = notationImageUrl(c.thumb); });
+    return { ...out, filter: { ...filter, q: q || undefined }, headers: NOTATION_CACHE };
+  },
+
+  /** One notation whole: the card, the heading, the parsed grid, the images, the shabad's header. */
+  '/api/notation': url => {
+    if (!notations) return { error: 'this deployment carries no notations', code: 503 };
+    const id = (url.searchParams.get('id') || '').trim();
+    if (!core.parseId(id)) return { error: 'invalid or missing id parameter', code: 400 };
+    const got = notations.get(id);
+    if (!got) return { error: `no notation with id ${id}`, code: 404 };
+    got.notation.images = got.notation.images.map(im => ({ ...im, url: notationImageUrl(im), path: undefined }));
+    got.notation.thumb = notationImageUrl(got.notation.thumb);
+    // the shabad's lines, whole, so the page can show the text the notation sets
+    if (got.shabad) {
+      got.shabad.lines = db.all(`SELECT ${lineCols} FROM lines WHERE shabad_id=? ORDER BY position_in_shabad`, [got.shabad.shabad_id]);
+    }
+    return { ...got, headers: NOTATION_CACHE };
+  },
+
   '/api/writings': url => {
     const picked = pickCorpus(url);
     if (picked.error) return picked;
@@ -825,6 +969,9 @@ const MIME = {
   '.json': 'application/json; charset=utf-8',
   '.webmanifest': 'application/manifest+json',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
@@ -844,7 +991,7 @@ const SECURITY_HEADERS = {
   // Fly redirects http to https; this is what stops the first request from
   // going out in the clear next time. Harmless on localhost: browsers ignore it.
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self';",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self';",
 };
 
 /**
@@ -935,11 +1082,30 @@ async function handleRequest(req, res) {
     req.identity = ident;
   }
 
+  // the notation renderer and its stylesheet, for the page
+  if (url.pathname === '/notation-render.js' || url.pathname === '/notation.css') {
+    try {
+      const js = url.pathname.endsWith('.js');
+      const text = js ? notationBundle() : core.notationRender.NOTATION_CSS;
+      res.writeHead(200, { ...H, 'content-type': js ? MIME['.js'] : MIME['.css'], 'cache-control': 'public, max-age=3600' });
+      res.end(text);
+    } catch (err) {
+      res.writeHead(500, { ...H, 'content-type': 'text/plain; charset=utf-8' });
+      res.end(IS_PROD ? 'Internal Server Error' : String(err && err.message || err));
+    }
+    return;
+  }
+  // the crops of the scans, from disk, when this server is configured to serve them
+  if (url.pathname.startsWith(NOTATION_IMAGES_LOCAL + '/')) {
+    serveNotationImage(url, res, H);
+    return;
+  }
+
   const handler = routes[url.pathname];
   if (handler) {
     let body;
     try {
-      body = await handler(url, req);
+      body = withNotationCounts(await handler(url, req));
     } catch (err) {
       console.error(`Error handling ${url.pathname}:`, err);
       body = { error: IS_PROD ? 'Internal Server Error' : err.message, code: 500 };
@@ -1011,6 +1177,28 @@ async function handleRequest(req, res) {
   });
 }
 
+/**
+ * GET /notation-images/<book>/images/<file>: a crop from NOTATION_IMAGES_DIR,
+ * with the same traversal guard the static handler uses. 404 when the
+ * directory is not configured: a URL the database never handed out.
+ */
+function serveNotationImage(url, res, H) {
+  const plain = (code, text) => { res.writeHead(code, { ...H, 'content-type': 'text/plain; charset=utf-8' }); res.end(text); };
+  if (!NOTATION_IMAGES_DIR) return plain(404, 'not found');
+  let rel;
+  try { rel = decodeURIComponent(url.pathname.slice(NOTATION_IMAGES_LOCAL.length + 1)); } catch { return plain(400, 'bad request'); }
+  if (!rel || rel.includes('\0')) return plain(400, 'bad request');
+  const file = path.resolve(NOTATION_IMAGES_DIR, '.' + path.sep + rel.replace(/^[\/\\]+/, ''));
+  if (!file.startsWith(NOTATION_IMAGES_DIR + path.sep)) return plain(403, 'forbidden');
+  const type = MIME[path.extname(file).toLowerCase()];
+  if (!type || !type.startsWith('image/')) return plain(404, 'not found');
+  fs.readFile(file, (err, data) => {
+    if (err) return plain(404, 'not found');
+    res.writeHead(200, { ...H, 'content-type': type, 'cache-control': 'public, max-age=86400, immutable' });
+    res.end(data);
+  });
+}
+
 const server = http.createServer((req, res) => {
   handleRequest(req, res).catch(err => {
     console.error(`Error handling ${req.url}:`, err);
@@ -1035,6 +1223,7 @@ function shutdown() {
   console.log('\nShutting down server gracefully...');
   server.close(() => {
     try { db.close(); } catch {}
+    try { if (notationsDb) notationsDb.close(); } catch {}
     process.exit(0);
   });
   setTimeout(() => process.exit(0), 3000).unref();

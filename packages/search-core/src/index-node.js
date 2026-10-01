@@ -10,5 +10,6 @@
 module.exports = {
   ...require('./index.js'),
   ...require('./io-node.js'),
+  ...require('./notation-node.js'),
   openNodeAdapter: require('./adapter-node.js').openNodeAdapter,
 };

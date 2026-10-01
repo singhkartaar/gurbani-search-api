@@ -18,6 +18,10 @@ module.exports = {
   ...require('./stanza.js'),
   ...require('./registry.js'),
   ...require('./corpus.js'),
+  ...require('./notation.js'),
+  ...require('./notations.js'),
+  notationVocab: require('./notation-vocab.js'),
+  notationRender: require('./notation-render.js'),
   keyboard: require('./keyboard.js'),
   gurmukhi: require('./gurmukhi.js'),
 };

@@ -152,6 +152,9 @@ Environment variables; there is no config file.
 | `ARTIFACTS_DIR` | `artifacts` | where index directories are discovered |
 | `MODELS_DIR` | `vendor/models` | where an index's `model_dir` is resolved |
 | `TRANSLATIONS_PATH` | `$ARTIFACTS_DIR/translations.sqlite` | absent → no `?tr=` |
+| `NOTATIONS_PATH` | `$ARTIFACTS_DIR/notations.sqlite` | the keertan notations pack; absent → `/api/notations` is 503 and health says so |
+| `NOTATION_IMAGES_DIR` | unset | serve the notation crops from disk at `/notation-images/` instead of the release assets |
+| `NOTATION_IMAGES_BASE` | unset | rewrite the release-asset prefix of image URLs to a mirror |
 | `APP_PASSWORD` | unset | unset → open. Set → HTTP Basic on every route except `/api/health` |
 | `CORS_ORIGINS` | unset | unset → no CORS headers at all. `*` → any origin, no credentials. A comma list → only those origins, and they may send credentials |
 | `RATE_LIMIT_PER_MINUTE` | unset | requests per client per minute. Unset or `0` → no limiting |

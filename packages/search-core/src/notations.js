@@ -28,6 +28,10 @@
 const COLUMNS = require('./notation-columns.json').tables;
 const g = require('./gurmukhi.js');
 
+// how a writer is named on the page, by author_key, over the name the books' manifests gave
+// the database ("Prin Dyal Singh"); a published database is never edited, so the name is set here
+const AUTHOR_NAMES = { 'prin-dyal-singh': 'Principal Dyal Singh' };
+
 const PAGE_MAX = 100;
 const Q_MAX = 120;
 const CHUNK = 500;
@@ -63,7 +67,8 @@ class NotationsStore {
     this.meta = Object.fromEntries(rowsOf(db, 'SELECT key, value FROM meta').map(r => [r.key, r.value]));
     this.raags = new Map(rowsOf(db, 'SELECT * FROM raags').map(r => [r.key, { ...r, aliases: parseJson(r.aliases, { pa: [], en: [] }) }]));
     this.taals = new Map(rowsOf(db, 'SELECT * FROM taals').map(r => [r.key, { ...r, vibhag: parseJson(r.vibhag, []), tali: parseJson(r.tali, []), khali: parseJson(r.khali, []) }]));
-    this.authors = new Map(rowsOf(db, 'SELECT * FROM authors').map(r => [r.author_key, r]));
+    this.authors = new Map(rowsOf(db, 'SELECT * FROM authors')
+      .map(r => [r.author_key, { ...r, name: AUTHOR_NAMES[r.author_key] || r.name }]));
     this.books = new Map(rowsOf(db, 'SELECT * FROM books ORDER BY author_key, part, book_key').map(r => [r.book_key, { ...r, style: parseJson(r.style, {}) }]));
     this.counts = new Map(rowsOf(db, 'SELECT shabad_id, n FROM shabad_counts').map(r => [r.shabad_id, r.n]));
     this.shabadLines = new Map();

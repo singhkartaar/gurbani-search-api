@@ -29,6 +29,7 @@ const NODE_ONLY = new Set([
   'packages/search-core/src/adapter-node.js',    // node:sqlite -- RN uses an op-sqlite adapter of the same shape
   'packages/search-core/src/io-node.js',         // node:fs     -- RN reads bundled/downloaded assets
   'packages/search-core/src/index-node.js',      // the barrel that adds both
+  'packages/search-core/src/notation-node.js',   // node:crypto -- the notation content hash; the phone never hashes
   'packages/query-encoder/src/factory-node.js',  // onnxruntime-node -- RN uses onnxruntime-react-native
 ]);
 

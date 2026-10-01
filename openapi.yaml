@@ -38,6 +38,7 @@ tags:
   - name: read
   - name: neighbours
   - name: writings
+  - name: notations
   - name: meta
 
 paths:
@@ -271,6 +272,116 @@ paths:
           description: no such corpus on this deployment, or no query model for it
           content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
 
+  /api/notations:
+    get:
+      tags: [notations]
+      operationId: notationsRoster
+      summary: What keertan notations this deployment holds
+      description: |
+        The facets a reader browses by, each with counts: raags (the raag the
+        composer used, `used`, and the raag the Granth prescribes for the
+        shabad, `prescribed`), taals, authors and books. Notations are the
+        printed musical settings of shabads from keertan books (Bhatkhande
+        notation), each stored as the scan of the printed grid and as the
+        grid the machine read from it. `/api/health`'s `notations` says whether
+        the deployment carries them.
+      responses:
+        '200':
+          description: the roster
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotationsRoster' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: this deployment carries no notations
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /api/notations/list:
+    get:
+      tags: [notations, search]
+      operationId: listNotations
+      summary: Notations as cards, filtered and paged
+      description: |
+        Filter by `raag` (the raag used; a parent raag covers its forms),
+        `shabad_raag` (the one the Granth prescribes), `author`, `book`,
+        `taal` (keys from `/api/notations`), `shabad` (a shabad_id) and
+        `verified=1`; `q` finds the shabad by any of its lines in Gurmukhi,
+        Roman or first letters (from any word on); a card found by a line
+        other than its first carries that line as `matched_line`. Ordered by ang, unresolved last. An unknown key is
+        a 400, not an empty list.
+      parameters:
+        - { name: raag, in: query, schema: { type: string } }
+        - { name: shabad_raag, in: query, schema: { type: string } }
+        - { name: author, in: query, schema: { type: string } }
+        - { name: book, in: query, schema: { type: string } }
+        - { name: taal, in: query, schema: { type: string } }
+        - { name: shabad, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: q, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: verified, in: query, schema: { type: string, enum: ['1'] } }
+        - { name: k, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        '200':
+          description: a page of cards
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  page: { type: integer }
+                  pages: { type: integer }
+                  k: { type: integer }
+                  results: { type: array, items: { $ref: '#/components/schemas/NotationCard' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: this deployment carries no notations
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /api/notation:
+    get:
+      tags: [notations, read]
+      operationId: getNotation
+      summary: One notation, whole
+      description: |
+        The card plus the printed heading, the grid the machine read (`grid`,
+        null when it has not been read), its confidence, the images (the crop
+        of the grid, the shabad text and the heading; `url` is a release asset
+        or a path on this server) and the shabad's header and lines. The scan
+        is the authority; `verified` says a reader checked the grid against it.
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string }, example: 'gurmat-sangeet-sagar-1:0168:1' }
+      responses:
+        '200':
+          description: the notation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notation: { $ref: '#/components/schemas/Notation' }
+                  shabad:
+                    type: object
+                    nullable: true
+                    properties:
+                      shabad_id: { type: integer }
+                      notations: { type: integer }
+                      first_line: { type: string, nullable: true }
+                      translit_roman: { type: string, nullable: true }
+                      writer: { type: string, nullable: true }
+                      raag: { type: string, nullable: true }
+                      ang: { type: integer, nullable: true }
+                      lines: { type: array, items: { $ref: '#/components/schemas/Line' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404':
+          description: no notation with that id
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: this deployment carries no notations
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
 components:
   securitySchemes:
     basicAuth:
@@ -344,6 +455,121 @@ components:
                     - { $ref: '#/components/schemas/ShabadMeta' }
 
   schemas:
+    NotationsSummary:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        books: { type: integer }
+        notations: { type: integer }
+        shabads: { type: integer }
+        images: { type: integer }
+        images_published: { type: integer }
+        verified: { type: integer }
+        parser_version: { type: string, nullable: true }
+        vocab_version: { type: string, nullable: true }
+        built: { type: string, nullable: true }
+    NotationsRoster:
+      allOf:
+        - { $ref: '#/components/schemas/NotationsSummary' }
+        - type: object
+          properties:
+            raags:
+              type: array
+              items:
+                type: object
+                properties:
+                  key: { type: string }
+                  english: { type: string }
+                  gurmukhi: { type: string, nullable: true }
+                  in_ggs: { type: boolean }
+                  parent_key: { type: string, nullable: true }
+                  used: { type: integer, description: notations whose composer used this raag }
+                  prescribed: { type: integer, description: notations of shabads the Granth places in this raag }
+            taals:
+              type: array
+              items: { type: object, properties: { key: { type: string }, english: { type: string }, gurmukhi: { type: string, nullable: true }, matras: { type: integer }, n: { type: integer } } }
+            authors:
+              type: array
+              items: { type: object, properties: { author_key: { type: string }, name: { type: string }, n: { type: integer } } }
+            books:
+              type: array
+              items:
+                type: object
+                properties:
+                  book_key: { type: string }
+                  title: { type: string }
+                  title_en: { type: string, nullable: true }
+                  author_key: { type: string }
+                  part: { type: integer, nullable: true }
+                  pages: { type: integer }
+                  notations: { type: integer }
+                  resolved: { type: integer }
+                  verified: { type: integer }
+    NotationCard:
+      type: object
+      properties:
+        notation_id: { type: string, description: '`<book_key>:<page>:<seq>`' }
+        book_key: { type: string }
+        book_title: { type: string }
+        book_title_en: { type: string, nullable: true }
+        part: { type: integer, nullable: true }
+        author_key: { type: string }
+        author: { type: string }
+        page_start: { type: integer }
+        page_end: { type: integer }
+        kind: { type: string, enum: [notation, partial, reet-ref, non-gurbani] }
+        shabad_id: { type: integer, nullable: true }
+        ang: { type: integer, nullable: true }
+        first_line: { type: string, nullable: true }
+        matched_line: { type: string, description: 'the line a `q` matched, when it is not the first line' }
+        translit_roman: { type: string, nullable: true }
+        writer: { type: string, nullable: true }
+        raag_shabad: { type: string, nullable: true, description: the raag the Granth prescribes }
+        raag_shabad_key: { type: string, nullable: true }
+        raag_used: { type: string, nullable: true, description: as printed }
+        raag_used_key: { type: string, nullable: true }
+        raag_used_en: { type: string, nullable: true }
+        raag_differs: { type: boolean }
+        taal: { type: string, nullable: true }
+        taal_key: { type: string, nullable: true }
+        taal_en: { type: string, nullable: true }
+        matras: { type: integer, nullable: true }
+        laya: { type: string, nullable: true }
+        has_grid: { type: boolean, description: whether the grid has been read from the scan }
+        confidence: { type: number }
+        verified: { type: boolean }
+        review_status: { type: string, nullable: true, enum: [accepted, backlog, null], description: "the review ledger's verdict when the database was built; null when nobody has looked at this notation yet" }
+        review_comment: { type: string, nullable: true, description: the reviewer's note, when one was left }
+        flags: { type: array, items: { type: string } }
+        thumb: { type: string, nullable: true, description: URL of the grid's thumbnail }
+    Notation:
+      allOf:
+        - { $ref: '#/components/schemas/NotationCard' }
+        - type: object
+          properties:
+            heading: { type: string, nullable: true, description: the printed heading }
+            grid:
+              type: array
+              nullable: true
+              description: the sections of the notation as read from the scan (the notation contract, schema 1)
+              items: { type: object }
+            sargam_en: { type: string, nullable: true, description: the grid in Latin swaras, one line a row }
+            confidences: { type: object }
+            others: { type: integer, description: other notations of the same shabad }
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  n: { type: integer }
+                  kind: { type: string, enum: [full, thumb] }
+                  role: { type: string, enum: [grid, shabad, heading] }
+                  page: { type: integer }
+                  url: { type: string, nullable: true }
+                  w: { type: integer, nullable: true }
+                  h: { type: integer, nullable: true }
+                  bytes: { type: integer }
+                  sha256: { type: string }
     Corpus:
       type: object
       properties:
@@ -523,6 +749,11 @@ components:
           type: object
           additionalProperties: { type: boolean }
           description: which `tr` views exist; all absent is a normal deployment
+        notations:
+          description: the keertan notations this deployment carries, or `{enabled:false}`
+          oneOf:
+            - { $ref: '#/components/schemas/NotationsSummary' }
+            - { type: object, properties: { enabled: { type: boolean, enum: [false] } } }
         cors: { type: object, properties: { enabled: { type: boolean } } }
         logging: { type: object, properties: { enabled: { type: boolean } } }
         rate_limit: { type: object, properties: { enabled: { type: boolean } } }

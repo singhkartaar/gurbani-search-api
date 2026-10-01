@@ -305,6 +305,16 @@ test('the page\'s files carry a validator, and an unchanged one comes back as a 
   assert.notStrictEqual(head.headers.get('etag'), etag, 'each file its own');
 });
 
+// The corpora a reader picks between are told apart: where two share an
+// author, the row's label names each, so no two carried corpora read alike.
+test('health: no two carried corpora go by the same name', { skip: !HAS_DB }, async () => {
+  const carried = (health.corpora || []).filter(c => c.enabled);
+  const names = carried.map(c => c.label || c.author || c.key);
+  assert.deepStrictEqual(names.filter((x, i) => names.indexOf(x) !== i), [], names.join(' | '));
+  // a corpus that is searched, never asked, says so, and Ask is off for it
+  for (const c of carried.filter(x => x.askable === false)) assert.strictEqual(c.ask, false, c.key);
+});
+
 // The writings: a search returns whole passages, a bounded number of them,
 // each with the shabads it cites. Skips where this build carries no corpus.
 test('writings search: bounded, floored, scored, and the id spaces never cross', { skip: !HAS_DB }, async () => {

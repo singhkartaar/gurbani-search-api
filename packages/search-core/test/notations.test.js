@@ -60,6 +60,8 @@ test('summary, counts and the roster', () => {
   assert.deepStrictEqual([gauri.used, gauri.prescribed], [0, 2]);
   assert.deepStrictEqual(r.taals.map(t => [t.key, t.n]), [['dadra', 3], ['teentaal', 1]]);
   assert.deepStrictEqual(r.authors.map(a => [a.author_key, a.n]), [['prin-dyal-singh', 3], ['prof-tara-singh', 1]]);
+  // Principal written out; any other writer as the database names them
+  assert.deepStrictEqual(r.authors.map(a => a.name), ['Principal Dyal Singh', 'Prof. Tara Singh']);
   assert.strictEqual(r.books.length, 2);
   assert.ok(store.known('raag', 'gauri') && !store.known('raag', 'nope') && store.known('book', 'rr') && !store.known('taal', 'x'));
 });
@@ -113,7 +115,7 @@ test('a card says what the reader needs and get() adds the grid, the images and 
   assert.strictEqual(card.first_line, 'ਮਨ ਕਹਾ ਲੁਭਾਈਐ ਆਨ ਕਉ ॥');
   assert.strictEqual(card.translit_roman, 'man kahaa lubhaaeeai aan kau ||');
   assert.deepStrictEqual([card.author, card.book_title_en, card.raag_used_en, card.taal_en, card.raag_differs, card.has_grid, card.verified],
-                         ['Prin. Dyal Singh', 'Gurmat Sangeet Sagar', 'Bhairavi', 'Teentaal', true, true, false]);
+                         ['Principal Dyal Singh', 'Gurmat Sangeet Sagar', 'Bhairavi', 'Teentaal', true, true, false]);
   // no thumbnail: the card shows the first crop instead (thumbnails need not be published)
   assert.deepStrictEqual(card.thumb, { path: 'gss-1/images/gss-1-0171-1-1.png', url: null });
   const got = store.get('gss-1:0168:1');

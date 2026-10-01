@@ -90,6 +90,19 @@ without it.
 
 ---
 
+## The keertan notations
+
+The `notations` pack holds musical settings of shabads from published
+keertan books (Prin. Dyal Singh's *Gurmat Sangeet Sagar*, Prof. Tara
+Singh's *Guru Arjan Dev Rag Ratnavali*, *Sur Simran Sangeet*, and others as
+they are added). The books are freely distributed by sikhbookclub.com;
+the text set to music is Gurbani, and the settings are the composers'
+work as printed. Each notation is served as the crop of the scanned page,
+hosted as a release asset of this repository, with the machine's reading
+of the grid beside it and the author, book and page named on every card.
+A rights holder who wants a book withdrawn writes to the owner and the
+book's release and rows are removed at the next build.
+
 ## Permission does not transfer
 
 Permission for *this* publication was obtained by the project's owner. **It is

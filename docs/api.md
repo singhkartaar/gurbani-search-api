@@ -263,6 +263,34 @@ error: a heading, or a line a translation skips, has no vector in that index.
 
 ---
 
+## `GET /api/notations` · `/api/notations/list` · `/api/notation` — keertan notations
+
+Shabads set to music, from keertan books: each notation is the scan of the
+printed grid (the authority) and the grid the machine read from it, with a
+confidence and a `verified` flag once a reader has checked it; `review_status`
+says what the review ledger held when the database was built (`accepted`,
+`backlog`, or null for a notation nobody has looked at yet) and
+`review_comment` the reviewer's note, so a deployment that ships every cut
+still says which ones were checked. Present only
+where the deployment carries `notations.sqlite` (`/api/health` →
+`notations.enabled`); otherwise the three routes answer 503.
+
+- `GET /api/notations` — the roster: raags with two counts (`used`, the raag
+  the composer chose; `prescribed`, the raag the Granth places the shabad in),
+  taals, authors, books.
+- `GET /api/notations/list?raag=&shabad_raag=&author=&book=&taal=&shabad=&q=&verified=1&k=20&page=1`
+  — cards, ordered by ang. Keys come from the roster; an unknown one is a
+  400. `raag` covers a raag's forms (Gauri covers Gauri Purbi). `q` matches
+  the shabad's first line in Gurmukhi, Roman or first letters.
+- `GET /api/notation?id=<book>:<page>:<seq>` — one notation: the heading,
+  `grid` (the sections, lines and beats of the notation contract; null when
+  the grid has not been read), `sargam_en`, the images (`url` is a GitHub
+  release asset or a path on this server) and the shabad's header and lines.
+
+Every search row and `/api/shabad` carry `notations: n` when the shabad has
+any. Responses are cacheable for an hour; they change only when the database
+is rebuilt.
+
 ## `GET /api/keyboard`
 
 The Gurmukhi layout, so a client need not hardcode it: `rows` (the 35 akhar),

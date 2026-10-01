@@ -90,3 +90,104 @@ export const gurmukhi: {
   stripNukta(input: string): string;
   suffixTokens(charCodeStr: string): string[];
 };
+
+/* ---- keertan notations (notations.js) ---------------------------------- */
+
+export interface NotationCard {
+  notation_id: string;
+  book_key: string;
+  book_title: string;
+  book_title_en?: string | null;
+  part?: number | null;
+  author_key: string;
+  author: string;
+  page_start: number;
+  page_end: number;
+  kind: 'notation' | 'partial' | 'reet-ref' | 'non-gurbani';
+  shabad_id: number | null;
+  shabad_source?: string | null;
+  ang: number | null;
+  first_line: string | null;
+  /** the line a query matched, when it is not the first line */
+  matched_line?: string;
+  translit_roman: string | null;
+  writer: string | null;
+  raag_shabad?: string | null;
+  raag_shabad_key?: string | null;
+  raag_used?: string | null;
+  raag_used_key?: string | null;
+  raag_used_parent_key?: string | null;
+  raag_used_en?: string | null;
+  raag_differs: boolean;
+  taal?: string | null;
+  taal_key?: string | null;
+  taal_en?: string | null;
+  matras?: number | null;
+  laya?: string | null;
+  partaal: boolean;
+  sections: number;
+  beats: number;
+  has_grid: boolean;
+  confidence: number;
+  verified: boolean;
+  review_status: 'accepted' | 'backlog' | null;
+  review_comment: string | null;
+  flags: string[];
+  image_count: number;
+  thumb: { url: string | null; path: string | null } | null;
+}
+
+export interface NotationImage {
+  n: number;
+  kind: 'full' | 'thumb';
+  role: 'grid' | 'shabad' | 'heading';
+  page: number;
+  path?: string;
+  url: string | null;
+  bbox: number[] | null;
+  w: number | null;
+  h: number | null;
+  bytes: number;
+  sha256: string;
+}
+
+export interface NotationsFilter {
+  raag?: string | null;
+  shabadRaag?: string | null;
+  author?: string | null;
+  book?: string | null;
+  taal?: string | null;
+  shabad?: number | null;
+  q?: string;
+  verified?: boolean;
+  k?: number;
+  page?: number;
+}
+
+export interface NotationsSummary {
+  enabled: boolean;
+  books: number;
+  notations: number;
+  shabads: number;
+  images: number;
+  images_published: number;
+  verified: number;
+  parser_version: string | null;
+  vocab_version: string | null;
+  built: string | null;
+}
+
+export class NotationsStore {
+  constructor(opts: { db: DbAdapter; gurbani?: DbAdapter | null });
+  meta: Record<string, string>;
+  summary(): NotationsSummary;
+  roster(): NotationsSummary & { raags: any[]; taals: any[]; authors: any[]; books: any[] };
+  countFor(shabadId: number): number;
+  attachCounts<T extends { shabad_id?: number | null }>(rows: T[]): T[];
+  known(kind: 'raag' | 'taal' | 'author' | 'book', key: string): boolean;
+  list(filter?: NotationsFilter): { total: number; page: number; pages?: number; k: number; results: NotationCard[] };
+  get(notationId: string): { notation: NotationCard & { heading: string | null; grid: any[] | null; images: NotationImage[]; sargam_en: string | null; others: number }; shabad: any | null } | null;
+  shabadHeader(shabadId: number): any;
+  static imageUrl(image: { url?: string | null; path?: string | null } | null, opts?: { localBase?: string | null; urlBase?: string | null; releaseBase?: string | null }): string | null;
+}
+export const NOTATION_COLUMNS: Record<string, string[]>;

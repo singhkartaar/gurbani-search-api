@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "bea55079c3c3",
-  "built": "2026-10-01T15:17:41.659Z",
+  "version": "04ec17d1abb1",
+  "built": "2026-10-01T18:02:47.714Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -193,17 +193,17 @@
       "default": true,
       "label": "Translations and the Darpan",
       "why": "what ?tr= attaches, and the darpan block on /api/shabad",
-      "bytes": 33026418,
-      "bytes_on_disk": 122970112,
+      "bytes": 33242568,
+      "bytes_on_disk": 123981824,
       "count": 1,
       "files": [
         {
           "asset": "translations.translations.sqlite.gz",
-          "bytes": 33026418,
-          "sha256": "31ae93f38faee5bb9f0efe27d22974e72e390f8673d43499844de5eda8e708ad",
+          "bytes": 33242568,
+          "sha256": "2d2caa002309f381ba5c08acb811a312b7b5669e94762a7b88da7c3a53e80a8e",
           "encoding": "gzip",
-          "bytes_plain": 122970112,
-          "sha256_plain": "1537999d19b145dbc8726cf6776f56a17b3b380a5f1a914f7a3c8457a34e3df3",
+          "bytes_plain": 123981824,
+          "sha256_plain": "5ef30f778121ae88d55542ee2819184189a2ccedc5e0f6f5974ce12b9c1db344",
           "path": "artifacts/translations.sqlite"
         }
       ]
