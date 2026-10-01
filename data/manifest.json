@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "35f4617b4f42",
-  "built": "2026-09-30T18:40:27.637Z",
+  "version": "bb5bceb4a174",
+  "built": "2026-10-01T05:39:03.241Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -1425,26 +1425,26 @@
       ],
       "label": "The writings of Baru Sahib",
       "why": "Baru Sahib's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
-      "bytes": 1953102,
-      "bytes_on_disk": 3668660,
+      "bytes": 1981255,
+      "bytes_on_disk": 3734196,
       "count": 7,
       "files": [
         {
           "asset": "writings-barusahib.barusahib.sqlite.gz",
-          "bytes": 744200,
-          "sha256": "af4b9d65bb92a35e6ff03f50278ee6b0b3de2d12d953713aedbceb55b25ab951",
+          "bytes": 772354,
+          "sha256": "ce111b5580287b34f72ed70177d853b27e32ad5747bd39626098bb5966c6041a",
           "encoding": "gzip",
-          "bytes_plain": 2232320,
-          "sha256_plain": "aff895015b0e517149ecd12e0e2c1a5b6521ef8e22415662261f23532517b78f",
+          "bytes_plain": 2297856,
+          "sha256_plain": "7cbc661a42e269ca2d7a5adabe99e6c8c4223e1b119bdba63e056c4e7c3cef4d",
           "path": "artifacts/barusahib.sqlite"
         },
         {
           "asset": "writings-barusahib.barusahib-en.manifest.json.gz",
-          "bytes": 683,
-          "sha256": "5af89eb0e1fd06aa047a9f0c300abb85839d79432a94f111628992c94af14c9d",
+          "bytes": 682,
+          "sha256": "dd5b976d357a159df7c3b046cc24fb5e4d0dad61a633d3f6b2c4539b7a767ca0",
           "encoding": "gzip",
           "bytes_plain": 1242,
-          "sha256_plain": "6b5edca63f0a2eabcb4b54838befa432c729226a84b3a4862dd5b3e5e947e90d",
+          "sha256_plain": "cb5afed1239f7ecef7325329682f4b64a853fb7bb55e8d79eaf6c1ac83ced92a",
           "path": "artifacts/corpora/barusahib-en/manifest.json"
         },
         {
