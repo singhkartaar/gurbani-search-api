@@ -17,7 +17,12 @@ const { WordPieceTokenizer, normalize, preTokenize } = require('../src/tokenizer
 const ROOT = process.env.ROOT_DIR || path.resolve(__dirname, '..', '..', '..');
 const MODEL_DIR = process.env.MODEL_DIR
   || path.join(process.env.MODELS_DIR || path.join(ROOT, 'vendor', 'models'), 'bge-small-en-v1.5');
-const ARTIFACTS = process.env.ARTIFACTS_DIR || path.join(ROOT, 'artifacts');
+const ARTIFACTS_ROOT = process.env.ARTIFACTS_DIR || path.join(ROOT, 'artifacts');
+// The English index is artifacts/en-ss now; the references once sat at the
+// root, beside a root index that no longer exists, and every test reading them
+// skipped in silence. The root is still tried, for an older layout.
+const ARTIFACTS = ['en-ss', '.'].map(d => path.join(ARTIFACTS_ROOT, d))
+  .find(d => fs.existsSync(path.join(d, 'reference_embeddings.json'))) || path.join(ARTIFACTS_ROOT, 'en-ss');
 const TOKENIZER_JSON = path.join(MODEL_DIR, 'tokenizer.json');
 const REF_TOKENS = path.join(ARTIFACTS, 'reference_tokens.json');
 const REF_EMB = path.join(ARTIFACTS, 'reference_embeddings.json');
@@ -184,6 +189,41 @@ test('cross-runtime drift never changes WHICH documents are retrieved',
     }
   });
 
+// What a reader actually gets: a corpus line, embedded by the query encoder as
+// a passage, lands on the vector its index holds for it. Every English index
+// whose single source let 01_embed.py keep the exact texts (en-ss averages
+// three translations, which one encode() call cannot reproduce).
+const ENGLISH_CORPUS_INDEXES = fs.existsSync(ARTIFACTS_ROOT)
+  ? fs.readdirSync(ARTIFACTS_ROOT).filter(d => fs.existsSync(path.join(ARTIFACTS_ROOT, d, 'reference_corpus.json'))
+      && JSON.parse(fs.readFileSync(path.join(ARTIFACTS_ROOT, d, 'manifest.json'), 'utf8')).tokenizer !== 'unigram')
+  : [];
+for (const index of ENGLISH_CORPUS_INDEXES) {
+  test(`[${index}] a corpus line, embedded by the query encoder, lands on the vector the index holds for it`,
+    { skip: !HAS_MODEL }, async () => {
+      const { createNodeEncoder } = require('../src/factory-node.js');
+      const { encoderOptions } = require('../src/index.js');
+      const core = require('../../search-core/src/index-node.js');
+      const dir = path.join(ARTIFACTS_ROOT, index);
+      const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8'));
+      const ref = JSON.parse(fs.readFileSync(path.join(dir, 'reference_corpus.json'), 'utf8'));
+      const enc = await createNodeEncoder(MODEL_DIR, encoderOptions(manifest));
+      const art = await core.loadArtifacts(core.nodeReadFile(dir));
+      const { codes, scales, dim } = art.lines;
+      const cosines = [];
+      for (const { line_id: row, text } of ref.lines) {
+        const v = core.projectQuery(art.pca, (await enc.encode([text]))[0]);
+        let dot = 0, norm = 0;
+        for (let i = 0; i < dim; i += 1) { const s = codes[row * dim + i] * scales[row]; dot += v[i] * s; norm += s * s; }
+        cosines.push(dot / Math.sqrt(norm));
+      }
+      cosines.sort((a, b) => a - b);
+      const median = cosines[cosines.length >> 1];
+      console.log(`  [${index}] corpus parity: worst ${cosines[0].toFixed(4)}, median ${median.toFixed(4)}`);
+      // the same floors as the Gurmukhi indexes (encoder.pa.test.js), measured after the batch-1 rebuild
+      assert.ok(median > 0.999 && cosines[0] > 0.998, `corpus parity: worst ${cosines[0].toFixed(4)}, median ${median.toFixed(4)}`);
+    });
+}
+
 test('the query prefix is applied to queries and never to documents',
   { skip: !HAS_MODEL || !fs.existsSync(REF_EMB) }, async () => {
     const { createNodeEncoder } = require('../src/factory-node.js');
@@ -211,10 +251,11 @@ test('batching shifts vectors slightly -- dynamic int8 quantization, not a mask 
     // The quantized model derives activation scales from the tensor it is given,
     // so batch composition perturbs the result by ~0.3%. Verified that this is
     // NOT a padding/attention-mask fault: a same-width batch (no extra padding)
-    // shifts the vector just as much as a padded one. The corpus was embedded in
-    // batches of 64 and queries are embedded alone, so a small systematic offset
-    // exists by construction -- far below the margin separating relevant from
-    // irrelevant results.
+    // shifts the vector just as much as a padded one. Which is why the corpus is
+    // embedded one text at a time, as queries are (lib/embedder.py BATCH_SIZE):
+    // batched 64 at a time, a line's stored vector sat a median 0.98 from the
+    // same line embedded alone, in the index's space. The corpus-parity test
+    // below holds that.
     const { createNodeEncoder } = require('../src/factory-node.js');
     const enc = await createNodeEncoder(MODEL_DIR);
     const cos = (a, b) => { let d = 0; for (let i = 0; i < a.length; i += 1) d += a[i] * b[i]; return d; };
