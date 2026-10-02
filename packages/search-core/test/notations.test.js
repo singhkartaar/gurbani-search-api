@@ -109,6 +109,42 @@ test('any line of the shabad finds its notations, and the card names the line th
   assert.strictEqual(store.list({ q: 'ਕੋਈ ਹੋਰ' }).total, 0);
 });
 
+test('Roman first letters are read by sound as well as by code, and may be spaced one letter apart', () => {
+  const { store } = open();
+  const ids = q => store.list({ q }).results.map(c => c.notation_id);
+  const both = ['gss-1:0168:1', 'rr:0500:1'];
+  // ਡਿਠੇ ਸਭੇ ਥਾਵ ਨਹੀ ਤੁਧੁ ਜੇਹਿਆ is fsQnqj in the corpus; a reader types what it sounds like
+  for (const q of ['dstntj', 'DSTNTJ', 'fsQnqj', 'd s t n t j', 'ਡਸਥਨਤਜ']) assert.deepStrictEqual(ids(q), ['gss-1:0171:1'], q);
+  // ਓਹੁ ਨੇਹੁ ਨਵੇਲਾ opens with ਓ, stored as E
+  assert.deepStrictEqual(ids('onn'), ['gss-1:0171:1']);
+  // what matched before still does: the codes, in any case, spaced or not
+  for (const q of ['bsk', 'BSK', 'b s k', 'ਬਸਕ', 'sbkh']) assert.deepStrictEqual(ids(q), both, q);
+  // a card found by a later line names it
+  assert.strictEqual(store.list({ q: 'd s t' }).results[0].matched_line, 'ਡਿਠੇ ਸਭੇ ਥਾਵ ਨਹੀ ਤੁਧੁ ਜੇਹਿਆ ॥');
+});
+
+test('spaces make first letters only in Roman, and only when every part is one letter', () => {
+  const { store } = open();
+  const ids = q => store.list({ q }).results.map(c => c.notation_id);
+  assert.deepStrictEqual(ids('hovat soochaa'), ['gss-1:0168:1', 'rr:0500:1'], 'words, as before');
+  assert.deepStrictEqual(ids('b sk'), [], 'a two-letter part is not a letter: no line reads "b sk"');
+  assert.deepStrictEqual(ids('ਬ ਸ ਕ'), [], 'Gurmukhi spaced apart is words, as typed');
+});
+
+test('Roman words match however they are spelt: e i one vowel, o u another, doubles single, aspirates bare', () => {
+  const { looseRoman } = require('../src/notations.js');
+  // the corpus spells ਇਹ `ieh`; a reader types eh or ih, and hari for its har
+  const corpus = looseRoman('mere raam ieh neech karam har mere ||');
+  for (const q of ['mere raam eh neech karam har mere', 'mere ram ih nich karam hari mere']) assert.strictEqual(looseRoman(q), corpus, q);
+  assert.strictEqual(looseRoman("uootam kahe'eeh a(n)t"), looseRoman('ootam kaheeh ant'));
+  const { store } = open();
+  const ids = q => store.list({ q }).results.map(c => c.notation_id);
+  assert.deepStrictEqual(ids('sach bina kah hovat sucha'), ['gss-1:0168:1', 'rr:0500:1'], 'saach binaa kah hovat soochaa');
+  assert.deepStrictEqual(ids('dithe sabe thav'), ['gss-1:0171:1'], 'ddiThe sabhe thaav');
+  // a single word is not folded: loosely, a fragment would find half the corpus
+  assert.deepStrictEqual(ids('sucha'), []);
+});
+
 test('a card says what the reader needs and get() adds the grid, the images and the shabad header', () => {
   const { store } = open();
   const card = store.list({ shabad: 4284 }).results[0];

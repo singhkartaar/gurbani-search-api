@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "release": "data-v1.2.0",
-  "version": "04ec17d1abb1",
-  "built": "2026-10-01T18:02:47.714Z",
+  "version": "b2e8288f0a37",
+  "built": "2026-10-02T06:27:50.889Z",
   "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
   "license": {
     "code": "MIT",
@@ -20,8 +20,8 @@
       "default": true,
       "label": "Search and read",
       "why": "the scripture, one index that reads both Gurmukhi and Latin queries, and the model to embed a query",
-      "bytes": 47972661,
-      "bytes_on_disk": 86949224,
+      "bytes": 47683891,
+      "bytes_on_disk": 86949336,
       "count": 18,
       "files": [
         {
@@ -35,29 +35,29 @@
         },
         {
           "asset": "core.pa-ssa.manifest.json.gz",
-          "bytes": 1036,
-          "sha256": "2014a57fa784f00726582dd7d4f6e267b04d66124abc43ba00ad40d2775104d7",
+          "bytes": 1151,
+          "sha256": "0eb4eb2d570dbcb3280dd42568017458e489b27b60330156c16d771be5e9211f",
           "encoding": "gzip",
-          "bytes_plain": 2530,
-          "sha256_plain": "c396d9de472c963ef684b0690fe3e53542fae9aec11bf36d24f585d91b8d51fa",
+          "bytes_plain": 2642,
+          "sha256_plain": "3fc4fdd79d3e9d29f073c60920d392a261b771053937615231f943c9b25e97a6",
           "path": "artifacts/pa-ssa/manifest.json"
         },
         {
           "asset": "core.pa-ssa.lines.i8.gz",
-          "bytes": 12516734,
-          "sha256": "f44ebd22713c4ab665decbe213e51c7fe8a4ddad9e4c0a36e307f18d808bbe03",
+          "bytes": 12230412,
+          "sha256": "b9aeaf1fa0ea8d5881b9e1c53d7f9d0c5d4ddd4dbcdcfd18c444231d9c6c5ff7",
           "encoding": "gzip",
           "bytes_plain": 15463168,
-          "sha256_plain": "19d36f8c9a6d5ce5b687eb8e37ca1ff768b6d83132a581828a7964b175b3e83a",
+          "sha256_plain": "1235f2cecc7b61f9370c7f8a016b147d526780fed8d7fb86c01fffb2d7bfd77e",
           "path": "artifacts/pa-ssa/lines.i8"
         },
         {
           "asset": "core.pa-ssa.lines.scale.f32.gz",
-          "bytes": 205788,
-          "sha256": "abedce55fef2c5921f4a5971170f90b5ff929c15e4e0e23e9c880065789716b1",
+          "bytes": 203046,
+          "sha256": "25c4176264fe8091bca595ae70323c3b7a07900e676a30adeaf8689803006833",
           "encoding": "gzip",
           "bytes_plain": 241612,
-          "sha256_plain": "2fb932bc4de32c9f1aa7af89c2f9cb508bcc248015981c0163d9e9d58790d9bf",
+          "sha256_plain": "ac7e10c4e6b641c30daaaf2a0ec083ed3904992858bab0db0f0cacbcfb0cf420",
           "path": "artifacts/pa-ssa/lines.scale.f32"
         },
         {
@@ -71,20 +71,20 @@
         },
         {
           "asset": "core.pa-ssa.shabads.i8.gz",
-          "bytes": 1157985,
-          "sha256": "02a9012a56341b0a1f1fe96cabd2678853f527344f09e7c3d5394ae7717c61b8",
+          "bytes": 1157889,
+          "sha256": "9a940c2dcbe6e2f81fae75d0de54bc9ccd27694aa32f75232efd4c9760f55989",
           "encoding": "gzip",
           "bytes_plain": 1413376,
-          "sha256_plain": "2b22e5d2d010b3f84d803159af07e108869296a89abae6f122e11493ed8af971",
+          "sha256_plain": "827d8a5474f1abaa3e332e3cc5d0a833167869d53a9bd9c7341899ed03d7d7d9",
           "path": "artifacts/pa-ssa/shabads.i8"
         },
         {
           "asset": "core.pa-ssa.shabads.scale.f32.gz",
-          "bytes": 19044,
-          "sha256": "6bca071273b8a129690e8851175d5f98797c36d39282565cdb3aba6ea3cf194b",
+          "bytes": 19011,
+          "sha256": "b906da6957a5e1b7a92e10882ce747eaf16d3da26993b6cdbdbbf430c1dd02a5",
           "encoding": "gzip",
           "bytes_plain": 22084,
-          "sha256_plain": "d04a78b8198a43ca9a761e5a0426ec7f9c1b52b6c8091ed2b259ccd046ffd1d5",
+          "sha256_plain": "3b3613ae1557c4e5b3ff3e8da55fe67519005db11714ee0e1f8c9f949502d622",
           "path": "artifacts/pa-ssa/shabads.scale.f32"
         },
         {
@@ -98,20 +98,20 @@
         },
         {
           "asset": "core.pa-ssa.rahao.i8.gz",
-          "bytes": 558943,
-          "sha256": "997466367a5ade6ae25a78be3b5232b32476e3a7be5485d0460ee0cd65f17455",
+          "bytes": 559269,
+          "sha256": "6a10801d054bbe41842a19cc9cbfd2bd345bf66b4e92cb3e4ba064676c6791c9",
           "encoding": "gzip",
           "bytes_plain": 670976,
-          "sha256_plain": "0855e258feec36e902cf7d40725b3b58ccf7139d109d48f6a62aa0e531ead97a",
+          "sha256_plain": "da9e0378acc92be95e46cc52c760894a667a3feab19acc9851df8b1f64f537ba",
           "path": "artifacts/pa-ssa/rahao.i8"
         },
         {
           "asset": "core.pa-ssa.rahao.scale.f32.gz",
           "bytes": 9085,
-          "sha256": "dc7ff18420258a4ea390b52dd9e25c88fc9f7028013695b98e2c45d40cf94d52",
+          "sha256": "738f21a196a7af2be1f33813ee5c15370b7b2fa173016e9d602a3992a27ba88c",
           "encoding": "gzip",
           "bytes_plain": 10484,
-          "sha256_plain": "12d28ac0702f9a88f08836f89df7c2754259a8e625011c1a5284906f8bdea19b",
+          "sha256_plain": "f003297e6cfe95fb367290a6fc3e61286f5765ca317e46a4713a33a5895c8877",
           "path": "artifacts/pa-ssa/rahao.scale.f32"
         },
         {
@@ -125,20 +125,20 @@
         },
         {
           "asset": "core.pa-ssa.pca.components.f32.gz",
-          "bytes": 363426,
-          "sha256": "ba1ac3c5bfdbbedbc38cf4a4f3e2e42a28ebe5e152bd5146317143413e3dcab2",
+          "bytes": 363407,
+          "sha256": "ba7025f1d3cc0fe097367e79a4a9694644c09e137c4961e037d1401d7fdc7481",
           "encoding": "gzip",
           "bytes_plain": 393216,
-          "sha256_plain": "04069a9537ac038574e64aca565bd6deeb19e508e6d020ddff448e44a36c8ea3",
+          "sha256_plain": "281e54bcc56c71a5d70024eca0076d9f7a3d9b61d394091d98321d181fb3dfed",
           "path": "artifacts/pa-ssa/pca.components.f32"
         },
         {
           "asset": "core.pa-ssa.pca.mean.f32.gz",
-          "bytes": 1487,
-          "sha256": "13cf2be5d284be275eea8e5f2dc1ee0e5fdb5334d86800697dd1a774e55b91a4",
+          "bytes": 1488,
+          "sha256": "f307fffc3216a0cd30016c86b073e2c276c44992e1af300a4d3a191056b933e1",
           "encoding": "gzip",
           "bytes_plain": 1536,
-          "sha256_plain": "540ecd7faabbdd1bd400044803b1464f29c8cf7545141a51d3f4b1eb2228d9c5",
+          "sha256_plain": "bcbc08fcb6d34277d9522173f376846541ed3dcbc6ac56aaa654bf3be4aac0a9",
           "path": "artifacts/pa-ssa/pca.mean.f32"
         },
         {
@@ -386,35 +386,35 @@
       "default": true,
       "label": "A third voter",
       "why": "a second Gurmukhi index sharing the core model, so index=all fuses three sources",
-      "bytes": 12851057,
-      "bytes_on_disk": 18311939,
+      "bytes": 12544770,
+      "bytes_on_disk": 18312028,
       "count": 12,
       "files": [
         {
           "asset": "punjabi-extra.pa-ft.manifest.json.gz",
-          "bytes": 1037,
-          "sha256": "869efa3e3382309e9c22fd5bf096c8268f42f2b1ebdfdd6b7d878588cf577135",
+          "bytes": 1144,
+          "sha256": "49998f328c6a969c4499962e3ae88ea7cbf97cfce74bf53aed6cee73993c356b",
           "encoding": "gzip",
-          "bytes_plain": 2516,
-          "sha256_plain": "1e018ef944e0b506d8621d2f7c33153defca65e025817fecb7f1bcbe8a10fa66",
+          "bytes_plain": 2605,
+          "sha256_plain": "ca5f7d87d7efaaf72695dc83a19ca9667528cd59c431e91051e0955b03ebe7f2",
           "path": "artifacts/pa-ft/manifest.json"
         },
         {
           "asset": "punjabi-extra.pa-ft.lines.i8.gz",
-          "bytes": 10819365,
-          "sha256": "d8e45bb964b814ee3f60df2a70026f8d7adafa2296909252e891dd4dfaf27a9e",
+          "bytes": 10521988,
+          "sha256": "304749949c79d047e11edc6c64f417a8d736ba317187512e6dc82c0ba6cb442c",
           "encoding": "gzip",
           "bytes_plain": 15463168,
-          "sha256_plain": "6e60fde005cec0e42e8079b03aebb00784ae7cfc669ebb3f84bd484d557d4b3c",
+          "sha256_plain": "602365637dce0805698d8c2280b729741d01a5f5db7cb1a96a91429555f7bc5f",
           "path": "artifacts/pa-ft/lines.i8"
         },
         {
           "asset": "punjabi-extra.pa-ft.lines.scale.f32.gz",
-          "bytes": 199860,
-          "sha256": "853ee758dfe294240c7e02923b732f38c25133b9111b4c7c72e176c3981a89a8",
+          "bytes": 197327,
+          "sha256": "eef9a75ee91a58cd8a4b028914e64abd94eb850a6e7cdbe4fa2342907bb4859a",
           "encoding": "gzip",
           "bytes_plain": 241612,
-          "sha256_plain": "46dfb54a5940b5b3425cc970574734c8501abb8943068295d33e105699bda89e",
+          "sha256_plain": "a559a90d27fa3e2d28c8840bd17fe277a10707974a9f9dae1e626c91c1a07903",
           "path": "artifacts/pa-ft/lines.scale.f32"
         },
         {
@@ -428,20 +428,20 @@
         },
         {
           "asset": "punjabi-extra.pa-ft.shabads.i8.gz",
-          "bytes": 935954,
-          "sha256": "1cac7b633f34bf2098529c569ac946263dc925f52ecdd7ca9c420c3c05a2dfee",
+          "bytes": 931114,
+          "sha256": "3db6267c41756daa73b1b0f7539598bc9e218248fda56dbc6ab002d66d22d305",
           "encoding": "gzip",
           "bytes_plain": 1413376,
-          "sha256_plain": "b8c4deddc9a2905ad3d4b87b681983a0058d44f8d93bf45b384c22becdb85016",
+          "sha256_plain": "7d10aea6ad7cd44cc8b295d0d27046a7de31a85d1e46885944f5899b003fa3ac",
           "path": "artifacts/pa-ft/shabads.i8"
         },
         {
           "asset": "punjabi-extra.pa-ft.shabads.scale.f32.gz",
-          "bytes": 18792,
-          "sha256": "dacce0464d2a5b74646de6a89d4a7e796740e65fe0c396b7ea9063a45e767b7b",
+          "bytes": 18791,
+          "sha256": "a1caec555e764cf7635e273a1a93a01c7b856e10637bd3f6ed993b41d6a6281a",
           "encoding": "gzip",
           "bytes_plain": 22084,
-          "sha256_plain": "8baa1c4ce55df165d042e3a88ee8a1c6ba212c0f505afd9a3eda992279441030",
+          "sha256_plain": "65f47fe00960cb33608f409bbdeac664530fc6a34be7758a1765a423ecc201e1",
           "path": "artifacts/pa-ft/shabads.scale.f32"
         },
         {
@@ -455,20 +455,20 @@
         },
         {
           "asset": "punjabi-extra.pa-ft.rahao.i8.gz",
-          "bytes": 479408,
-          "sha256": "f6e2e3c518dcf52f3f98e1661956bfb319b000ad6246c2f7fbe04eea1b33e07d",
+          "bytes": 477628,
+          "sha256": "67d6459f4d9efc8810ac279b6d1e61c8ef640cbc0220c379a163fbf4fa5fa337",
           "encoding": "gzip",
           "bytes_plain": 670976,
-          "sha256_plain": "f86b0a1b35b75c8d4646b3980056d1133fc90e9beb4159b0a10c5accc9b3b7cb",
+          "sha256_plain": "c645c4ee9d4a7884f15798d562aac7451546cd4b793e2b6c45794da3a0874213",
           "path": "artifacts/pa-ft/rahao.i8"
         },
         {
           "asset": "punjabi-extra.pa-ft.rahao.scale.f32.gz",
-          "bytes": 8895,
-          "sha256": "694555e469e9aa91b2a811258a43040a67fd45a79b358bc61411f25dacb3724e",
+          "bytes": 8901,
+          "sha256": "1f3e7bb8906804e45a6193c2e2692d1377f851e846985a8dadc2760d8748f5f9",
           "encoding": "gzip",
           "bytes_plain": 10484,
-          "sha256_plain": "f7cba0b80dd2e67040d5e8c1b01200f3904daf84be65031da3610e12d18008aa",
+          "sha256_plain": "c5222a1429f8f6bf0889549e767cf5b3b242a8151366ff89cf3d13d669ecc9ec",
           "path": "artifacts/pa-ft/rahao.scale.f32"
         },
         {
@@ -482,20 +482,20 @@
         },
         {
           "asset": "punjabi-extra.pa-ft.pca.components.f32.gz",
-          "bytes": 363533,
-          "sha256": "9cb7be4cd419d47890321084be3c07c3d4989bed8e6c15dddc27810527b00e61",
+          "bytes": 363667,
+          "sha256": "bab41a1531256a23991e8fdaf56d0ddb70a4489329c1cfef6880f861e1b33708",
           "encoding": "gzip",
           "bytes_plain": 393216,
-          "sha256_plain": "2f23159f3bb6fe1042a56b3ff229845f1841c94c3498914fd067c5f9745c6d3c",
+          "sha256_plain": "07ac0849ee16a7e2ecc2f772e875edf8e79d2a54e16d1c3f457075fce9da8e0b",
           "path": "artifacts/pa-ft/pca.components.f32"
         },
         {
           "asset": "punjabi-extra.pa-ft.pca.mean.f32.gz",
-          "bytes": 1497,
-          "sha256": "83f66e77a5f64af28c1625588998559db1ecd86c95bea79bac9b6a519ae46f4c",
+          "bytes": 1494,
+          "sha256": "78a8fac3e7ae27cbd178d82cb3a764c0aa0a6ba319577a0914c8a11a0625ba27",
           "encoding": "gzip",
           "bytes_plain": 1536,
-          "sha256_plain": "d0e9d6c70b9dce7e7980ef738fdd01e104996b7565308cfb4c3d644b3d5eb1e9",
+          "sha256_plain": "3940242dd5a46c1c67483bfe6d37d8aec761166297fddb0d59ce1f9383730856",
           "path": "artifacts/pa-ft/pca.mean.f32"
         }
       ]
@@ -505,8 +505,8 @@
       "default": false,
       "label": "Every index",
       "why": "the remaining two meaning sources; more votes, more memory",
-      "bytes": 27674761,
-      "bytes_on_disk": 36621200,
+      "bytes": 27657307,
+      "bytes_on_disk": 36621361,
       "count": 24,
       "files": [
         {
@@ -619,29 +619,29 @@
         },
         {
           "asset": "extra-indexes.ss-pa.manifest.json.gz",
-          "bytes": 1075,
-          "sha256": "0b19609f3c3fcca37d71e5a94f7e11f5f8f344b16d019a178959487a3e57ba59",
+          "bytes": 1204,
+          "sha256": "26526ec8f06a9f09dc24bceb8d9c003f66b683e3e0996777a9658e56dfdd70c1",
           "encoding": "gzip",
-          "bytes_plain": 2560,
-          "sha256_plain": "6d8fdf9ea730bfadd54740673e115ca392bf507c28be23db672c1e6914092779",
+          "bytes_plain": 2721,
+          "sha256_plain": "886c33cdf02bf6418dc9462bdb0f6594a554983daac0805234c763eff8b15fe5",
           "path": "artifacts/ss-pa/manifest.json"
         },
         {
           "asset": "extra-indexes.ss-pa.lines.i8.gz",
-          "bytes": 11710622,
-          "sha256": "8c5a15018bb67201ba6b9f215ce65019734cdfa09f63679ddf95c0152dc7dbf2",
+          "bytes": 11694494,
+          "sha256": "635a9ebd36a7f38eb8fab68707d71ef236eba6fa8e7c868bfdc3d05cb8e00c9e",
           "encoding": "gzip",
           "bytes_plain": 15463168,
-          "sha256_plain": "35b7f3e6512e7b5ec5d0958f47bf18e0f5be14ced09c379630bd128732e18c34",
+          "sha256_plain": "9b21828659cacc34a372cdf6de729f7ab8de30e5ea95c215ffc5aec02bbe063e",
           "path": "artifacts/ss-pa/lines.i8"
         },
         {
           "asset": "extra-indexes.ss-pa.lines.scale.f32.gz",
-          "bytes": 198033,
-          "sha256": "8405ffd534d79874ce672eba6da798cdcdfdb5017cb1e0198ba40c41dd3e00cb",
+          "bytes": 197932,
+          "sha256": "fe7fe2060bdd207a9649c4f0f095958a02a05c79a9b0561758de2dc1745d5857",
           "encoding": "gzip",
           "bytes_plain": 241612,
-          "sha256_plain": "6663eb8f11bcf24870f1d56b8296a302521f7499117e1341ae3a3fd8f9ab018c",
+          "sha256_plain": "f7cef1a9d7ebe1c76ab3906f404c8087d899cf2aa150391471f196f1c6804aef",
           "path": "artifacts/ss-pa/lines.scale.f32"
         },
         {
@@ -655,20 +655,20 @@
         },
         {
           "asset": "extra-indexes.ss-pa.shabads.i8.gz",
-          "bytes": 1126856,
-          "sha256": "14313f713c2d71008f4085fd53b74bc4f01b637c7a9cc4fdd0d07d91a5001e33",
+          "bytes": 1125455,
+          "sha256": "bb19f475677748d2a6a5a2c31a2536a3ad0b776e8aab07088eeaf8d3e7e6eb73",
           "encoding": "gzip",
           "bytes_plain": 1412864,
-          "sha256_plain": "383b728816b3be6944caaf648dc0abfb8723a9e926663eaf2662b8caf4ab301c",
+          "sha256_plain": "a756232f4781f6d2687116dd6515a9cace0a7f9676ed2c0a3e51b46d1bc064d0",
           "path": "artifacts/ss-pa/shabads.i8"
         },
         {
           "asset": "extra-indexes.ss-pa.shabads.scale.f32.gz",
-          "bytes": 18920,
-          "sha256": "1ab460ee7ef53744b9bc4f0967a9cfb9a48c2c7f0cb69c3cf4bb65f5316ce77f",
+          "bytes": 18919,
+          "sha256": "0cd340117d67fe70083b68d0cee3dc3cfc42844f9ac62b848afe130abeaa414b",
           "encoding": "gzip",
           "bytes_plain": 22076,
-          "sha256_plain": "3ea0c78dca7e0c66697b570d610a153c6e90e7ee71a9773979e6d60224528073",
+          "sha256_plain": "3437d2c262310969c93149361983c2b22b31af9cb0225aaaee62d15ff0cd1cef",
           "path": "artifacts/ss-pa/shabads.scale.f32"
         },
         {
@@ -682,20 +682,20 @@
         },
         {
           "asset": "extra-indexes.ss-pa.rahao.i8.gz",
-          "bytes": 549632,
-          "sha256": "46b2b474666cc8d653a0d251251d9c3b70fc7135c42cb8e4b304a9069f435bb0",
+          "bytes": 549603,
+          "sha256": "23c03e2af3bd785cdcd17cbbf9a035ee748e4b5e8548aa9cc14ebb0cdec72047",
           "encoding": "gzip",
           "bytes_plain": 670208,
-          "sha256_plain": "e6ffb19cf870b0043b219c3a1f0c5c780ac7e47860798f31078afddb3f1906b6",
+          "sha256_plain": "75a717ec5d6ca233c6b131a423209bc568ff77bc1a37836290387617fcaef0f0",
           "path": "artifacts/ss-pa/rahao.i8"
         },
         {
           "asset": "extra-indexes.ss-pa.rahao.scale.f32.gz",
-          "bytes": 9017,
-          "sha256": "dcada234a942cb3731f9462ba4180595cb507a917636cca848d790af913321cf",
+          "bytes": 9014,
+          "sha256": "9fe6051955ed708abe8fee31b13bde7c03c37bdb1776e42bd085ef4361e724bf",
           "encoding": "gzip",
           "bytes_plain": 10472,
-          "sha256_plain": "16e615e40005bf7f16d58e1c5c57fd91b57da06e0ed467cdbaf2a76413138a1b",
+          "sha256_plain": "f660e68f357e3905fb03bceb375184ad10a484ac399d9e59b2e0fa7735b39971",
           "path": "artifacts/ss-pa/rahao.scale.f32"
         },
         {
@@ -709,20 +709,20 @@
         },
         {
           "asset": "extra-indexes.ss-pa.pca.components.f32.gz",
-          "bytes": 363369,
-          "sha256": "c96cbb8c26cbf6d97dc989a500feef3dc57e6f909adaa03c987e930baa7d3b83",
+          "bytes": 363449,
+          "sha256": "a5dfa63ad799253ed23e86ac08a8b7f8ac887e91bbf8d23749605a19003440b8",
           "encoding": "gzip",
           "bytes_plain": 393216,
-          "sha256_plain": "d0b76cf3e2d6809d74263e2f25ce4f1547abd3ec42db7afaf142e05c547eeacb",
+          "sha256_plain": "27ce2e0e8cc7de13bbfb2a812405c38c7d1c6939e0daa2b0b5ffacd9ca8ae7b5",
           "path": "artifacts/ss-pa/pca.components.f32"
         },
         {
           "asset": "extra-indexes.ss-pa.pca.mean.f32.gz",
           "bytes": 1488,
-          "sha256": "f70f2db70ff25b787a1d940df61ca127680d144499033334a0cd8982443a017f",
+          "sha256": "46d81efe7d0d6f6dde2d83d654436951911b75ce2b5f333d6b2a19789c3584c0",
           "encoding": "gzip",
           "bytes_plain": 1536,
-          "sha256_plain": "48c38668a068b82fc2fc4b384b587e689d836236aa31e0df958c3b6dd7f10e69",
+          "sha256_plain": "ebf0bfa1fe6aca5a5659124c2b88ee78d43a9d32909ec91598ef53348de240c4",
           "path": "artifacts/ss-pa/pca.mean.f32"
         }
       ]
@@ -732,17 +732,17 @@
       "default": false,
       "label": "Parity fixtures",
       "why": "reference_topk.json beside each index, so the JS-vs-Python parity tests can run against a fetched deployment instead of skipping",
-      "bytes": 1556248,
-      "bytes_on_disk": 7198220,
-      "count": 7,
+      "bytes": 1558706,
+      "bytes_on_disk": 7205831,
+      "count": 8,
       "files": [
         {
           "asset": "fixtures.pa-ssa.reference_topk.json.gz",
-          "bytes": 3429,
-          "sha256": "f25231a365347846f812167713de35fd7a8a467f2fd972fa0b2984ab940c2ca8",
+          "bytes": 3458,
+          "sha256": "1c62e41409f99180d270a43f34b62c36b915a0c874f61e2354db4ea4b89e6b16",
           "encoding": "gzip",
-          "bytes_plain": 16923,
-          "sha256_plain": "ab297c8ca1ec06ad1ec34e4d482028cdcdd70652817c14f53f297d966afcdedd",
+          "bytes_plain": 17203,
+          "sha256_plain": "37739c561b7d1d3aae197b815a12506e59957550f422fb2e5dc4894b7aedcc41",
           "path": "artifacts/pa-ssa/reference_topk.json"
         },
         {
@@ -756,11 +756,11 @@
         },
         {
           "asset": "fixtures.pa-ssa.reference_embeddings.json.gz",
-          "bytes": 75226,
-          "sha256": "445356695b9fb76039b3d3b50bc5faa770c2c97900ba632d32878a8cc2ed950f",
+          "bytes": 75314,
+          "sha256": "bf51b7b4b742bfc6b18255fa35a5842906730f6f6dab375ab7e395f0796cb543",
           "encoding": "gzip",
-          "bytes_plain": 187618,
-          "sha256_plain": "47dda83e9fbe19c42cc90b71a89232e344883d71f6c2d1e80ffa7f84c2ed5628",
+          "bytes_plain": 187627,
+          "sha256_plain": "aa9a3f8c65b61a99b772770eb445dd30d9fd3c8ecd3c9e46cbf686bd375f6476",
           "path": "artifacts/pa-ssa/reference_embeddings.json"
         },
         {
@@ -774,11 +774,11 @@
         },
         {
           "asset": "fixtures.pa-ft.reference_topk.json.gz",
-          "bytes": 3161,
-          "sha256": "5fc0c37067a5426c37a8f41f020fdd82ed635c1feaf0416cfd5250af1ddd99b0",
+          "bytes": 3232,
+          "sha256": "fe9ff9810bd41bfd8f5f54fd0bc1cfad9a620ccc1c3a71640a44fc2a86423080",
           "encoding": "gzip",
-          "bytes_plain": 15870,
-          "sha256_plain": "3545810e2245050e34cd3f488b746a6d198e352396b71ad1c55e00fe8f6e49d8",
+          "bytes_plain": 16232,
+          "sha256_plain": "0fe4677593130f4c7e03571ac8266bc654c238c201b850be71355cd667224626",
           "path": "artifacts/pa-ft/reference_topk.json"
         },
         {
@@ -792,12 +792,21 @@
         },
         {
           "asset": "fixtures.pa-ft.reference_embeddings.json.gz",
-          "bytes": 75226,
-          "sha256": "445356695b9fb76039b3d3b50bc5faa770c2c97900ba632d32878a8cc2ed950f",
+          "bytes": 75314,
+          "sha256": "bf51b7b4b742bfc6b18255fa35a5842906730f6f6dab375ab7e395f0796cb543",
           "encoding": "gzip",
-          "bytes_plain": 187618,
-          "sha256_plain": "47dda83e9fbe19c42cc90b71a89232e344883d71f6c2d1e80ffa7f84c2ed5628",
+          "bytes_plain": 187627,
+          "sha256_plain": "aa9a3f8c65b61a99b772770eb445dd30d9fd3c8ecd3c9e46cbf686bd375f6476",
           "path": "artifacts/pa-ft/reference_embeddings.json"
+        },
+        {
+          "asset": "fixtures.pa-ft.reference_corpus.json.gz",
+          "bytes": 2182,
+          "sha256": "ee872bd840d24ea4b67a2b51f91d33e2178f302ea5808e8bbadf393fa0740c61",
+          "encoding": "gzip",
+          "bytes_plain": 6951,
+          "sha256_plain": "4aa7736eaa7730cf79954937305f16c7f6f96852547f6f2cd1ddff5ff821fc42",
+          "path": "artifacts/pa-ft/reference_corpus.json"
         }
       ]
     },
@@ -1576,8 +1585,8 @@
       "default": false,
       "label": "The writings of Baru Sahib, in Punjabi",
       "why": "Baru Sahib, in Punjabi's prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
-      "bytes": 2467217,
-      "bytes_on_disk": 6847312,
+      "bytes": 2467785,
+      "bytes_on_disk": 6847530,
       "count": 7,
       "files": [
         {
@@ -1591,29 +1600,29 @@
         },
         {
           "asset": "writings-barusahib-pa.barusahib-pa.manifest.json.gz",
-          "bytes": 682,
-          "sha256": "d0d7c31cb5943ce52ab9ebdedfc78a3b23894531b03d50a0a86643fae53a9297",
+          "bytes": 805,
+          "sha256": "4d957af3d587cb7f38a6664715d0afbd9e9058757684241833dc8a0f4ea505ed",
           "encoding": "gzip",
-          "bytes_plain": 1279,
-          "sha256_plain": "25c79e4dadd24aa96a60afe822460b7796937f88b87e07015dbce97bd25865e3",
+          "bytes_plain": 1497,
+          "sha256_plain": "5b3b78d3e978c3527cca148268c8343b0d578123c877ace1f4d47bde69d295b8",
           "path": "artifacts/corpora/barusahib-pa/manifest.json"
         },
         {
           "asset": "writings-barusahib-pa.barusahib-pa.units.i8.gz",
-          "bytes": 1106595,
-          "sha256": "7b71e0f95be608621767a2334ba8bb16f60024cb44b57848659d0027a7bf32d1",
+          "bytes": 1107072,
+          "sha256": "d8356d3fa05ea19da6ec1a30719ce48a3297b8b2e76f6984cd209cdb50455fa5",
           "encoding": "gzip",
           "bytes_plain": 1301760,
-          "sha256_plain": "238b0b90e6fbdd9eecedf30076c7d02f3023aa2b451392f925ebf0bbee6de750",
+          "sha256_plain": "494725d489d82b7abc382e393c0ae7af06858c8a92189383ab2cc0005adc35a8",
           "path": "artifacts/corpora/barusahib-pa/units.i8"
         },
         {
           "asset": "writings-barusahib-pa.barusahib-pa.units.scale.f32.gz",
-          "bytes": 17756,
-          "sha256": "e1098b639fd4a91a86743397bf7a8b5188692990cdf8d0cfb4fb8b2e618821c8",
+          "bytes": 17747,
+          "sha256": "f243d04947558b223055ecc68cf82bee172b3425256db837cd530302a6b4de80",
           "encoding": "gzip",
           "bytes_plain": 20340,
-          "sha256_plain": "6e1959e18ce1441a8efc72410fda288fee7514b57eef9cf4d8090a4596276ebe",
+          "sha256_plain": "b844c5b75ea6b533baafcf5e2db282026172554061c666fdd718c5a56d72befc",
           "path": "artifacts/corpora/barusahib-pa/units.scale.f32"
         },
         {
@@ -1627,20 +1636,20 @@
         },
         {
           "asset": "writings-barusahib-pa.barusahib-pa.pca.components.f32.gz",
-          "bytes": 363478,
-          "sha256": "51778440afc299cb76e0f919e3427dfe81f121e76b6c5f704a10e133458f857b",
+          "bytes": 363454,
+          "sha256": "7dce3fae21d4b564c9af44c28f0985e53086860c8e92fa200c6631d849bc95f1",
           "encoding": "gzip",
           "bytes_plain": 393216,
-          "sha256_plain": "708362e47dbccb0e8600558cabdbe2783b7fce4bfc5b3d3b09a84ec3b92d5659",
+          "sha256_plain": "4facb3b2d32d01db333d9e674f8632984cf55ae895315706e25f29ecdb6c5a3c",
           "path": "artifacts/corpora/barusahib-pa/pca.components.f32"
         },
         {
           "asset": "writings-barusahib-pa.barusahib-pa.pca.mean.f32.gz",
-          "bytes": 1482,
-          "sha256": "57be6ead886f4ff28932e853542583e185bb2232b8c6890dc2a44dc86d0de22a",
+          "bytes": 1483,
+          "sha256": "66acb2ca41c1fb9810fa0fc027d31ee57845023db3a3a345a6ddd54b0e4f21cc",
           "encoding": "gzip",
           "bytes_plain": 1536,
-          "sha256_plain": "b0bfce2aca5aa04615f3a8c0278462924a44008262c39a67c51536949ce2e4f6",
+          "sha256_plain": "ada9ed41d67d925f388b7cf0d768ea7124e2847f94c6de1c9bb19b98ec74cabe",
           "path": "artifacts/corpora/barusahib-pa/pca.mean.f32"
         }
       ]
@@ -1650,8 +1659,8 @@
       "default": false,
       "label": "The writings of Bhai Vir Singh (the Santhya, in Punjabi)",
       "why": "Bhai Vir Singh (the Santhya, in Punjabi)'s prose, searchable by meaning through /api/writings/search: passages, with the shabads they cite",
-      "bytes": 10890321,
-      "bytes_on_disk": 29111801,
+      "bytes": 10890658,
+      "bytes_on_disk": 29112018,
       "count": 7,
       "files": [
         {
@@ -1665,29 +1674,29 @@
         },
         {
           "asset": "writings-santhya-pa.santhya-pa.manifest.json.gz",
-          "bytes": 694,
-          "sha256": "60ffb2819f4e47024061c091240cb00cedd75c2283d05c38752b0cb1dd93d007",
+          "bytes": 817,
+          "sha256": "be35fe38dc657626ee9a15dea4f5a74991252a2a79db344b4539f344491521b8",
           "encoding": "gzip",
-          "bytes_plain": 1290,
-          "sha256_plain": "24dc4dc35e1e510630076229c1dde25c4fbeb9289e76651fef734c802c8f1c3e",
+          "bytes_plain": 1507,
+          "sha256_plain": "209751c2a3185fba7c24ba12188e358cb07c05333c9a2e842e3e7ad39d05dafe",
           "path": "artifacts/corpora/santhya-pa/manifest.json"
         },
         {
           "asset": "writings-santhya-pa.santhya-pa.units.i8.gz",
-          "bytes": 5317079,
-          "sha256": "eddbe7e6a086e99bd27ed062bbe09f356185cc1112d9f010c06b12bb3ad251fc",
+          "bytes": 5317483,
+          "sha256": "0c213e3b8859e47bceedf585f92b892e794bbf5f3ec11f83e9e9c166ec1b6a3c",
           "encoding": "gzip",
           "bytes_plain": 6185728,
-          "sha256_plain": "6ace9c90638ff740f128ec7568641030c13c2957dd752d300f07e0801bfd69e1",
+          "sha256_plain": "c8dc329ed5eaf2d8b604d6bfa1c5c9d57fe0a2b18046eee738b2131b882368d3",
           "path": "artifacts/corpora/santhya-pa/units.i8"
         },
         {
           "asset": "writings-santhya-pa.santhya-pa.units.scale.f32.gz",
-          "bytes": 84467,
-          "sha256": "b9d67b673f059d2ef8b9b0dda419ed66111cc2761900193aea93a971f8dd251f",
+          "bytes": 84487,
+          "sha256": "5cb6f7e3e878f7c689e0cd2cc74589e858a3268315d2474ff68ad40731b7a46b",
           "encoding": "gzip",
           "bytes_plain": 96652,
-          "sha256_plain": "877e73e7f81a25dd99a5259ee0f8874504febd3cf0e1c8a65397c18545334f99",
+          "sha256_plain": "6442553a5bf49165bb99dff545897da3297bada63ff007209e265630cbbc16cf",
           "path": "artifacts/corpora/santhya-pa/units.scale.f32"
         },
         {
@@ -1701,20 +1710,20 @@
         },
         {
           "asset": "writings-santhya-pa.santhya-pa.pca.components.f32.gz",
-          "bytes": 363540,
-          "sha256": "900b242fee470c96e1c8c8c6cfc3bd87bea30fbda9b3aa3da21bcf6aeb06d73f",
+          "bytes": 363338,
+          "sha256": "cbd978ca2ce63ce75d87774c5def80c200bfa501d512a765f94f82612547f53e",
           "encoding": "gzip",
           "bytes_plain": 393216,
-          "sha256_plain": "fbd41a688426e3d5dba055f5b67537398bc5923c13be05adc7992766ebaf3ff2",
+          "sha256_plain": "1f84ceff311a47689deb9f31925656eb60c46be33bf6ea4383c17761f3237f0a",
           "path": "artifacts/corpora/santhya-pa/pca.components.f32"
         },
         {
           "asset": "writings-santhya-pa.santhya-pa.pca.mean.f32.gz",
-          "bytes": 1496,
-          "sha256": "65acd85bd5c5924efb9f4f65e4446147f2dd73ede8ebfba608f1560ac0b0c7ee",
+          "bytes": 1488,
+          "sha256": "b4918bc1f1e892dd55a5928debf549699cf58fd91dccb4955960d36c434ef377",
           "encoding": "gzip",
           "bytes_plain": 1536,
-          "sha256_plain": "e81717e4f8dcbd47cffc0f718808cca5569be4f45f78dbc5d38ac5a766dea31f",
+          "sha256_plain": "a8c44ab3688774c70b0364d2b5451255a0cd9d252a297fa467aee66d8f8881f4",
           "path": "artifacts/corpora/santhya-pa/pca.mean.f32"
         }
       ]

@@ -72,6 +72,9 @@ function buildGurbani(file) {
   ins.run(1000, 913, 'ਬਿਰਥੀ ਸਾਕਤ ਕੀ ਆਰਜਾ ॥', 'birathee saakat kee aarajaa ||', 'bskA', 'Guru Arjan Dev Ji', 'Raag Gauri', 269, 'line', 1);
   ins.run(1001, 913, 'ਸਾਚ ਬਿਨਾ ਕਹ ਹੋਵਤ ਸੂਚਾ ॥', 'saach binaa kah hovat soochaa ||', 'sbkhs', 'Guru Arjan Dev Ji', 'Raag Gauri', 269, 'line', 2);
   ins.run(2000, 4284, 'ਮਨ ਕਹਾ ਲੁਭਾਈਐ ਆਨ ਕਉ ॥', 'man kahaa lubhaaeeai aan kau ||', 'mklAk', 'Guru Arjan Dev Ji', 'Raag Sarang', 1208, 'rahao', 1);
+  // real lines, under a shabad of the fixture's own, for the letters whose codes are not their sound
+  ins.run(2001, 4284, 'ਡਿਠੇ ਸਭੇ ਥਾਵ ਨਹੀ ਤੁਧੁ ਜੇਹਿਆ ॥', 'ddiThe sabhe thaav nahee tudh jehiaa ||', 'fsQnqj', 'Guru Arjan Dev Ji', 'Raag Sarang', 1208, 'line', 2);
+  ins.run(2002, 4284, 'ਓਹੁ ਨੇਹੁ ਨਵੇਲਾ ॥', 'oh neh navelaa ||', 'Enn', 'Guru Arjan Dev Ji', 'Raag Sarang', 1208, 'line', 3);
   ins.run(3000, 5, 'ਕੋਈ ਹੋਰ ॥', 'koee hor ||', 'kh', 'x', 'Raag Asa', 400, 'line', 1);
   db.close();
 }

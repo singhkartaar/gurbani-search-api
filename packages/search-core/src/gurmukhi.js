@@ -35,17 +35,25 @@ const BINDI_CHARACTERS = {
   '080': '038', // 'P' ਫ -> '&' ਫ਼
 };
 
+/**
+ * What a reader typed, as text. Nothing is the empty string -- not the word
+ * "null" or "undefined", which String() would make of it and buildQuery would
+ * then search for, letter by letter -- and anything else is its string form,
+ * so every function here returns a string whatever it was handed.
+ */
+const text = v => (v === null || v === undefined ? '' : String(v));
+
 /** Unicode Gurmukhi -> ASCII Gurbani keymap (AnmolLipi). shabads.js:82 */
-const toAscii = unicodeStr => anvaad.unicode(unicodeStr, true);
+const toAscii = unicodeStr => anvaad.unicode(text(unicodeStr), true);
 
 /** ASCII Gurbani keymap -> Unicode Gurmukhi. */
-const toUnicode = asciiStr => anvaad.unicode(asciiStr);
+const toUnicode = asciiStr => anvaad.unicode(text(asciiStr));
 
 /** First letter of each word, as an ASCII Gurbani string. */
-const firstLettersAscii = asciiStr => anvaad.firstLetters(asciiStr);
+const firstLettersAscii = asciiStr => anvaad.firstLetters(text(asciiStr));
 
 /** Vowel-stripped consonant skeleton. */
-const mainLetters = asciiStr => anvaad.mainLetters(asciiStr);
+const mainLetters = asciiStr => anvaad.mainLetters(text(asciiStr));
 
 /**
  * Encode an ASCII Gurbani string to BaniDB's comma-delimited char-code form.
@@ -98,7 +106,7 @@ const NUKTA_BASE = {
 
 /** Fold precomposed and combining nuktas to their base consonant. */
 function stripNukta(input) {
-  return String(input)
+  return text(input)
     .normalize('NFC')
     .replace(/[ਸ਼ਖ਼ਗ਼ਜ਼ਫ਼ਲ਼]/g, ch => NUKTA_BASE[ch])
     .replace(/਼/g, '');
@@ -110,7 +118,7 @@ function stripNukta(input) {
  * Accepts either Unicode Gurmukhi or ASCII keymap input.
  */
 function buildQuery(rawInput) {
-  const stripped = stripNukta(String(rawInput).replace(/\s+/g, ''));
+  const stripped = stripNukta(text(rawInput).replace(/\s+/g, ''));
   // anvaad.unicode(_, true) is a no-op on text that is already ASCII keymap
   const ascii = toAscii(stripped);
   return encodeCharCodes(ascii);

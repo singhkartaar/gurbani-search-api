@@ -50,14 +50,30 @@ test('odd whitespace is what the model\'s own normalizer makes of it', () => {
   assert.deepStrictEqual(preTokenize(normalize('query:  ਮੌਤ')), ['▁query:', '▁ਮੌਤ']);
 });
 
-/** See encoder.test.js: what ~0.3% cross-runtime drift can and cannot change. */
+/**
+ * See encoder.test.js: what cross-runtime drift can and cannot change.
+ *
+ * Python builds with onnxruntime 1.30.0 and the server queries with
+ * onnxruntime-node 1.30.0, both pinned (requirements.txt, package.json): int8
+ * kernels differ between releases, and the references this file reads were
+ * once made with an unrecorded one -- 0.982 worst, 7 of 10 shared. Each
+ * manifest now says what built it (`built_with`).
+ */
+const MIN_SHARED = 8;
+// the top line may change only where the reference's first two are this close
+const MAX_FLIP_GAP = 0.01;
+// a corpus line, embedded by the query encoder, against the vector the index
+// holds for it (see the corpus-parity test below); measured after the
+// batch-1 rebuild of 2026-10-02
+const CORPUS_MEDIAN = 0.999;   // measured 0.9999 on pa-ft, pa-ssa and ss-pa (batch 64 had been 0.972-0.980)
+const CORPUS_WORST = 0.998;    // measured 0.9997 (batch 64 had been 0.939-0.948)
 function assertSameRetrieval(label, js, py) {
   const a = js.map(h => h.id), b = py.map(h => h.id);
   const overlap = a.filter(id => b.includes(id)).length;
-  assert.ok(overlap >= 8, `query "${label}": only ${overlap}/10 lines shared across runtimes`);
+  assert.ok(overlap >= MIN_SHARED, `query "${label}": only ${overlap}/10 lines shared across runtimes`);
   if (a[0] !== b[0]) {
     const gap = py[0].score - py[1].score;
-    assert.ok(gap < 0.01, `query "${label}": top-1 differs with a clear margin (${gap.toFixed(4)})`);
+    assert.ok(gap < MAX_FLIP_GAP, `query "${label}": top-1 differs with a clear margin (${gap.toFixed(4)})`);
     assert.ok(b.slice(0, 3).includes(a[0]), `query "${label}": JS top-1 not among the Python top three`);
   }
 }
@@ -175,6 +191,34 @@ for (const INDEX of UNIGRAM_INDEXES.length ? UNIGRAM_INDEXES : ['pa', 'pa-ft']) 
       assert.ok(worst > floor, `cross-runtime cosine dropped to ${worst.toFixed(6)} (floor ${floor})`);
     });
 
+  // What a reader actually gets: the query encoder embeds a corpus line, as a
+  // passage, onto the vector the index holds for that line. The reference
+  // files above check the encoder against Python; this checks it against the
+  // corpus, which is where batch-64 embedding left them a median 0.98 apart.
+  const REF_CORPUS = path.join(ARTIFACTS, 'reference_corpus.json');
+  test(T('a corpus line, embedded by the query encoder, lands on the vector the index holds for it'),
+    { skip: skip || !fs.existsSync(REF_CORPUS) }, async () => {
+      const { createNodeEncoder } = require('../src/factory-node.js');
+      const core = require('../../search-core/src/index-node.js');
+      const ref = JSON.parse(fs.readFileSync(REF_CORPUS, 'utf8'));
+      assert.ok(ref.lines.length >= 30, `${ref.lines.length} sample lines`);
+      const enc = await createNodeEncoder(MODEL_DIR, opts());
+      const art = await core.loadArtifacts(core.nodeReadFile(ARTIFACTS));
+      const { codes, scales, dim } = art.lines;
+      const cosines = [];
+      for (const { line_id: row, text } of ref.lines) {
+        const v = core.projectQuery(art.pca, (await enc.encode([text]))[0]);
+        let dot = 0, norm = 0;
+        for (let i = 0; i < dim; i += 1) { const s = codes[row * dim + i] * scales[row]; dot += v[i] * s; norm += s * s; }
+        cosines.push(dot / Math.sqrt(norm));
+      }
+      cosines.sort((a, b) => a - b);
+      const median = cosines[cosines.length >> 1];
+      console.log(`  [${INDEX}] corpus parity: worst ${cosines[0].toFixed(4)}, median ${median.toFixed(4)}`);
+      assert.ok(median > CORPUS_MEDIAN && cosines[0] > CORPUS_WORST,
+        `corpus parity: worst ${cosines[0].toFixed(4)} (floor ${CORPUS_WORST}), median ${median.toFixed(4)} (floor ${CORPUS_MEDIAN})`);
+    });
+
   test(T('cross-runtime drift never changes WHICH lines a Gurmukhi query retrieves'),
     { skip: skip || !fs.existsSync(REF_EMB) }, async () => {
       const { createNodeEncoder } = require('../src/factory-node.js');
@@ -222,8 +266,12 @@ for (const INDEX of UNIGRAM_INDEXES.length ? UNIGRAM_INDEXES : ['pa', 'pa-ft']) 
     const art = await core.loadArtifacts(core.nodeReadFile(ARTIFACTS));
     const hits = core.searchText(art, core.projectQuery(art.pca, await enc.encodeQuery('ਕੋਈ ਨ ਜਾਣੈ ਤੇਰਾ ਕੇਤਾ ਕੇਵਡੁ ਚੀਰਾ')), 'lines', 3);
     const db = core.openNodeAdapter(CORPUS);
-    const top = db.all('SELECT gurmukhi_uni FROM lines WHERE line_id=?', [hits[0].id])[0].gurmukhi_uni;
+    const top = hits.map(h => db.all('SELECT gurmukhi_uni FROM lines WHERE line_id=?', [h.id])[0].gurmukhi_uni);
     db.close();
-    assert.match(top, /ਜਾਣੈ ਤੇਰਾ ਕੇਤਾ ਕੇਵਡੁ ਚੀਰਾ/);
+    // The verse has near-twins (ਕੋਇ ਨ ਜਾਣੈ ਤੇਰਾ ਚੀਰਾ, ਕੋਇ/ਕੋਈ ਨ ਜਾਣੈ ਤੇਰਾ ਕੇਤਾ ਕੇਵਡੁ ਚੀਰਾ) whose scores sit within 0.03 of
+    // each other, and which one is first is not the point: the first is this verse, and the exact line is in the
+    // top three. (After the batch-1 rebuild of 2026-10-02 the shorter twin came first in pa-ssa.)
+    assert.match(top[0], /ਨ ਜਾਣੈ ਤੇਰਾ .*ਚੀਰਾ/, `the first line is from outside the verse: ${top[0]}`);
+    assert.ok(top.some(line => /ਜਾਣੈ ਤੇਰਾ ਕੇਤਾ ਕੇਵਡੁ ਚੀਰਾ/.test(line)), top.join(' | '));
   });
 }

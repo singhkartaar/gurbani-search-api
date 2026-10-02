@@ -36,8 +36,11 @@ test('the Roman keymap types by sound, and only where one key can say it', () =>
   const byLetter = Object.entries(kb.ROMAN_KEYMAP);
   for (const [key, letter] of byLetter) {
     assert.strictEqual(key.length, 1, `${key} is not a single key`);
-    assert.ok(kb.ALL_KEYS.includes(letter), `${key} produces ${letter}, which is not on the keyboard`);
+    // ਓ alone is off the keyboard: the corpus keeps it as a first letter of its own
+    assert.ok(kb.ALL_KEYS.includes(letter) || letter === 'ਓ', `${key} produces ${letter}, which is not on the keyboard`);
   }
+  assert.strictEqual(kb.ROMAN_KEYMAP.e, kb.ROMAN_KEYMAP.i, 'e and i both open on ੲ');
+  assert.strictEqual(g.buildQuery(kb.ROMAN_KEYMAP.o), g.buildQuery('ਓ'), 'o searches ਓ, as typed in Gurmukhi');
   // by sound, not by AnmolLipi position: the same physical key means different
   // letters in the two modes, which is the whole point of the switch
   assert.strictEqual(kb.ROMAN_KEYMAP.t, '\u0a24');

@@ -64,7 +64,10 @@ const ROMAN = {
  * complete; typing here stays unambiguous.
  */
 const ROMAN_KEYMAP = {
-  u: 'ੳ', a: 'ਅ', i: 'ੲ', s: 'ਸ', h: 'ਹ',
+  // e is i's sound as often as its own (ਇਹ is typed `eh` as readily as `ih`),
+  // and both open on ੲ. o is ਓ, which the corpus keeps as a first letter of
+  // its own -- not on the ਪੈਂਤੀ keyboard, but typed as a reader says it.
+  u: 'ੳ', a: 'ਅ', i: 'ੲ', e: 'ੲ', o: 'ਓ', s: 'ਸ', h: 'ਹ',
   k: 'ਕ', K: 'ਖ', g: 'ਗ', G: 'ਘ',
   c: 'ਚ', C: 'ਛ', j: 'ਜ', J: 'ਝ',
   T: 'ਟ', D: 'ਡ', N: 'ਣ', R: 'ੜ',

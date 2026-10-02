@@ -71,6 +71,50 @@ function foldRoman(s) {
   return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Roman as it is spelt, not as the corpus spells it. The transliteration has
+ * one spelling of each word -- ਇਹ is `ieh`, ਦਰਿ `dhar`, ਊਤਮ `uootam`, ਅੰਤੁ
+ * `a(n)t` -- and a reader types another: `eh`, `ih`, `dar`, `ootam`, `ant`.
+ * Both sides are folded the same way: e i y one vowel, o u another; a letter
+ * doubled is one; the h of an aspirate goes (dh is d, kh k); w is v, z j, f p;
+ * the silent i or u that ends a longer word goes (hari is har, mere mer).
+ * Coarser than the spelling, so it is tried beside the exact match, not instead.
+ */
+function looseRoman(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/['’()]/g, '')
+    .replace(/[^a-z ]+/g, ' ')
+    .replace(/([bcdgjklmnpqrstvxz])h/g, '$1')
+    .replace(/[eiy]/g, 'i').replace(/[ou]/g, 'u')
+    .replace(/w/g, 'v').replace(/z/g, 'j').replace(/f/g, 'p')
+    .replace(/([a-z])\1+/g, '$1')
+    .split(/\s+/).filter(Boolean)
+    .map(w => (w.length > 2 && /[iu]$/.test(w) ? w.slice(0, -1) : w))
+    .join(' ');
+}
+
+/**
+ * First letters typed in Roman, against the corpus's AnmolLipi codes. Each
+ * Roman letter stands for itself in either case -- what a reader typing the
+ * codes themselves expects, and what this matched before -- and for the
+ * letters it SOUNDS like whose codes are something else: ਤ and ਥ are q Q, ਡ
+ * and ਢ are f F, ਣ is x, ੜ is V, ਯ is X, the ੲ that opens ਇ ਈ ਏ is e, the ੳ
+ * that opens ਉ ਊ is a, and ਓ is E. Wider, never narrower: `t` still finds ਟ.
+ */
+const ROMAN_SOUNDS = { t: 'qQ', d: 'fF', n: 'x|', r: 'V', y: 'X', i: 'e', o: 'Ea', u: 'a', f: 'P', w: 'v' };
+const classEscape = c => c.replace(/[\\]\[^-]/g, '\$&');
+function romanLetters(letters) {
+  return new RegExp([...letters].map(c => {
+    const lower = c.toLowerCase();
+    const set = new Set([c, lower, c.toUpperCase(), ...(ROMAN_SOUNDS[lower] || '')]);
+    return '[' + [...set].map(classEscape).join('') + ']';
+  }).join(''));
+}
+
+// One Roman letter: what a query of single letters with spaces between them
+// is made of. Roman only -- Gurmukhi spaced apart stays words, as typed.
+const ONE_LETTER = /^[A-Za-z]$/;
+
 class NotationsStore {
   /**
    * @param db       adapter over notations.sqlite
@@ -123,6 +167,7 @@ class NotationsStore {
         if (!this.shabadLines.has(r.shabad_id)) this.shabadLines.set(r.shabad_id, []);
         this.shabadLines.get(r.shabad_id).push({
           gurmukhi_uni: r.gurmukhi_uni, folded: foldGurmukhi(r.gurmukhi_uni), roman: foldRoman(r.translit_roman),
+          loose: looseRoman(r.translit_roman),
           letters: String(r.first_letters_ascii || ''), codes: r.first_letters_ascii ? g.encodeCharCodes(r.first_letters_ascii) : '',
         });
         if (!out.has(r.shabad_id)) {
@@ -232,9 +277,11 @@ class NotationsStore {
     }
     const w = where.length ? 'WHERE ' + where.join(' AND ') : '';
     const total = rowsOf(this.db, `SELECT COUNT(*) c FROM notations n ${w}`, params)[0].c;
-    const size = Math.max(1, Math.min(PAGE_MAX, Number(k) || 20));
+    // whole numbers: a k of 2.5 reached LIMIT ? as a "datatype mismatch" throw,
+    // and a page of 2.5 came back reported as page 2.5
+    const size = Math.max(1, Math.min(PAGE_MAX, Math.floor(Number(k)) || 20));
     const pages = Math.max(1, Math.ceil(total / size));
-    const p = Math.max(1, Math.min(pages, Number(page) || 1));
+    const p = Math.max(1, Math.min(pages, Math.floor(Number(page)) || 1));
     const rows = rowsOf(this.db,
       // the card's picture: a published thumbnail, else the first crop itself (the crops are small 1-bit PNGs, so
       // thumbnails need not be published at all), else whatever local file a self-hoster serves
@@ -257,22 +304,30 @@ class NotationsStore {
 
   /**
    * The shabads a query finds, each with the first of its lines that matched.
-   * Words match as typed (a substring of a line); a query without spaces may
-   * also be first letters, from any word of a line on, nuktas optional.
+   * Words match as typed (a substring of a line); a query without spaces, or
+   * of Roman single letters spaced apart, may also be first letters, from any word
+   * of a line on, nuktas optional -- in Roman, by the letter or by its sound.
    */
   matchLines(query) {
     const out = new Map();
     const isGurmukhi = /[਀-੿]/.test(query);
     const words = isGurmukhi ? foldGurmukhi(query) : foldRoman(query);
-    const bare = !/\s/.test(query.trim());
+    // whole words only: a fragment folded loosely would find half the corpus
+    const loose = !isGurmukhi && /\s/.test(query.trim()) ? looseRoman(query) : '';
+    // First letters are a query with no spaces, or Roman single letters with a
+    // space between each (`t d d b`). Anything with a word in it is words.
+    const parts = query.trim().split(/\s+/);
+    const spaced = parts.length >= 2 && parts.every(p => ONE_LETTER.test(p));
+    const letters = spaced ? parts.join('') : parts.length === 1 ? parts[0] : '';
     // a vowel typed whole (ਊ) is its carrier (ੳ) among first letters, as the corpus stores them
-    const codes = bare ? g.buildQuery(query.replace(/[ਆਐਔ]/g, 'ਅ').replace(/[ਇਈਏ]/g, 'ੲ').replace(/[ਉਊਓ]/g, 'ੳ')) : '';
+    const codes = letters ? g.buildQuery(letters.replace(/[ਆਐਔ]/g, 'ਅ').replace(/[ਇਈਏ]/g, 'ੲ').replace(/[ਉਊਓ]/g, 'ੳ')) : '';
     const codeQs = codes && codes.split(',').length > 2 ? [codes, g.bindiVariant(codes)].filter(Boolean) : [];
-    // the corpus's first letters are ASCII with case (a is ੳ, A is ਅ); a Latin query is also tried without it
-    const lower = !isGurmukhi && bare && query.length >= 2 ? query.toLowerCase() : '';
+    // the corpus's first letters are ASCII with case (a is ੳ, A is ਅ); a Latin query is read by sound as well
+    const roman = !isGurmukhi && letters.length >= 2 ? romanLetters(letters) : null;
     const hit = l => (isGurmukhi ? l.folded.includes(words) : (words && l.roman.includes(words)))
+      || (loose && l.loose.includes(loose))
       || codeQs.some(c => l.codes.includes(c))
-      || (lower && l.letters.toLowerCase().includes(lower));
+      || (roman && roman.test(l.letters));
     for (const [id, lines] of this.shabadLines) {
       const l = lines.find(hit);
       if (l) out.set(id, l.gurmukhi_uni);
@@ -367,4 +422,4 @@ class NotationsStore {
   }
 }
 
-module.exports = { NotationsStore, NOTATION_COLUMNS: COLUMNS, foldGurmukhi, foldRoman };
+module.exports = { NotationsStore, NOTATION_COLUMNS: COLUMNS, foldGurmukhi, foldRoman, looseRoman };

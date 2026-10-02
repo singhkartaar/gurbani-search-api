@@ -173,8 +173,15 @@ if (fs.existsSync(NOTATIONS_PATH)) {
   }
 }
 
-/** name -> { art, encoder, meta } for every index that loaded; `known` also holds the eligible ones that did not. */
-const indexes = {};
+/**
+ * name -> { art, encoder, meta } for every index that loaded; `known` also holds the eligible ones that did not.
+ *
+ * NO PROTOTYPE. A reader's `?index=` is looked up here by name, and on a plain
+ * object `indexes['constructor']` is Object's constructor: `index=toString`
+ * passed the "is it loaded" check and failed one line later as a 500. The
+ * same is true of every map below that a query string indexes into.
+ */
+const indexes = Object.create(null);
 const known = new Set();
 let tdb = null;          // translations.sqlite, when it is on disk
 // key -> { store, ask }, one per corpus in CORPORA that is on disk; `ask` is
@@ -285,7 +292,8 @@ const lineCols = `line_id, verse_id, shabad_id, ang, position_in_shabad,
 // to hand a model as context, and not good enough to put in front of a reader
 // as his words. It serves the English meaning indexes and Ask, both of which
 // read translations.sqlite directly, and it stops there.
-const TRANSLATORS = { en: ['bdb', 'ms'], pa: ['pa-ss', 'pa-ms'], pad: ['pa-ss-pad'], fk: ['pa-fk'], vs: ['pa-santhya'] };
+const TRANSLATORS = Object.assign(Object.create(null),
+  { en: ['bdb', 'ms'], pa: ['pa-ss', 'pa-ms'], pad: ['pa-ss-pad'], fk: ['pa-fk'], vs: ['pa-santhya'] });
 
 /** Views a request asked to see beside the Gurmukhi: ?tr=en,pa,pad,fk,vs */
 function parseLangs(url) {
@@ -470,16 +478,25 @@ function notationBundle() {
   return notationBrowserBundle;
 }
 
+// DIGITS, NOT WHATEVER Number() WILL PARSE. Number('0x10') is 16, Number('1e3')
+// 1000 and Number('1.0') 1, so `id=0x10` opened shabad 16 and a mistyped
+// exponent opened a shabad nobody asked for; and past 2^53 Number() rounds,
+// so one id quietly became its neighbour. A count may carry a sign (a
+// negative one clamps to the floor); an id may not. Surrounding blanks are
+// forgiven, since a pasted value often carries them.
+const SIGNED_DIGITS = /^[+-]?\d{1,15}$/;
+const DIGITS = /^\d{1,15}$/;
+
 function parseBoundedInt(val, min, max, fallback) {
   if (absent(val)) return fallback;
-  const n = Number(val);
-  return Number.isInteger(n) ? Math.max(min, Math.min(max, n)) : fallback;
+  const s = String(val).trim();
+  return SIGNED_DIGITS.test(s) ? Math.max(min, Math.min(max, Number(s))) : fallback;
 }
 
 function parseNonNegativeInt(val) {
   if (absent(val)) return null;
-  const n = Number(val);
-  return Number.isInteger(n) && n >= 0 ? n : null;
+  const s = String(val).trim();
+  return DIGITS.test(s) ? Number(s) : null;
 }
 
 /** The index a request asks for, or an error body: 400 for a name nobody has, 503 for one that did not load. */
@@ -582,6 +599,9 @@ function pickCorpora(url) {
     return { all: true, keys, entries: keys.map(k => corpusByKey(k)) };
   }
   const keys = [...new Set(raw.split(',').map(x => x.trim()).filter(Boolean))];
+  // `corpus=,` or `corpus=%20` names nothing; left to fall through, the empty
+  // list reached the search as entries[0] and came back a 500
+  if (!keys.length) return { error: `no corpus named in "${raw}"`, code: 400 };
   const entries = [];
   for (const key of keys) {
     const one = corpusByKey(key);
@@ -1123,6 +1143,13 @@ async function handleRequest(req, res) {
       'content-type': 'application/json; charset=utf-8',
     });
     res.end(JSON.stringify(json));
+    return;
+  }
+  // an API caller asked for a route that is not there: say so in the API's own
+  // shape, rather than letting the static handler answer in plain text
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+    res.writeHead(404, { ...H, 'content-type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ error: `no route ${url.pathname.slice(0, 100)}`, code: 404 }));
     return;
   }
 
