@@ -14,6 +14,10 @@
  * must never depend on them. That isolation is asserted in search-core's tests
  * and mirrored here.
  */
+// Kept in the public export: the query encoders' fingerprint is a sha256. Once
+// stripped as "unused", the public server's `crypto` became the global Web
+// Crypto, which has no createHash, and every query encoder failed to load there.
+const crypto = require('node:crypto');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -1187,7 +1191,7 @@ async function handleRequest(req, res) {
       res.end('not found');
       return;
     }
-    const etag = '"' + require('node:crypto').createHash('sha1').update(data).digest('base64url') + '"';
+    const etag = '"' + crypto.createHash('sha1').update(data).digest('base64url') + '"';
     const cache = { etag, 'cache-control': 'no-cache' };
     const seen = String(req.headers['if-none-match'] || '').split(',').map(s => s.trim().replace(/^W\//, ''));
     if (seen.includes(etag)) {

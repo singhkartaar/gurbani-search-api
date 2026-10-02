@@ -284,7 +284,9 @@ test('POST is refused with 405', { skip: !HAS_DB }, async () => {
 
 // The page's files keep their names across deploys, so they are revalidated
 // rather than cached blind: an unchanged file costs a 304 and no bytes.
-test('the page\'s files carry a validator, and an unchanged one comes back as a bodiless 304', { skip: !HAS_DB }, async () => {
+// the public export has no reader page, so there is no /app.js to revalidate there
+const HAS_PAGE = fs.existsSync(path.join(__dirname, '..', 'public', 'app.js'));
+test('the page\'s files carry a validator, and an unchanged one comes back as a bodiless 304', { skip: !HAS_DB || !HAS_PAGE }, async () => {
   const first = await fetch(BASE + '/app.js');
   assert.strictEqual(first.status, 200);
   const etag = first.headers.get('etag');

@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "release": "data-v1.2.0",
+  "release": "data-v1.2.1",
   "version": "67074ce04965",
-  "built": "2026-10-02T07:39:46.473Z",
-  "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.0",
+  "built": "2026-10-02T11:22:09.652Z",
+  "base_url": "https://github.com/singhkartaar/gurbani-search-api/releases/download/data-v1.2.1",
   "license": {
     "code": "MIT",
     "data": "NPOSL-3.0 and others",
